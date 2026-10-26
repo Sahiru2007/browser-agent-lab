@@ -40,9 +40,12 @@ Use npm.cmd if PowerShell execution policy blocks npm.ps1.
 GitHub CLI browser authentication succeeded as Sahiru2007. Created and verified
 the private repository https://github.com/Sahiru2007/browser-agent-lab with the
 requested description. Starter commit 88dbd22 was pushed to origin/main and its
-full SHA independently matched GitHub's main commit. GitHub Actions started:
+full SHA independently matched GitHub's main commit. GitHub Actions passed all
+checks on that starter commit, including HTTP and Chromium controls:
 https://github.com/Sahiru2007/browser-agent-lab/actions/runs/40373294999
-No GitHub Actions success result is claimed yet.
+The successful run uploaded control artifacts. GitHub reported a nonfatal
+deprecation annotation for the actions' Node 20 runtime (forced to Node 24);
+update action versions during future dependency maintenance.
 No Docker/PostgreSQL run, AI-agent run, or paid model
 call was performed. The TestClient deprecation warning is nonfatal; review it
 when upgrading dependencies.
