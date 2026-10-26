@@ -274,3 +274,156 @@ spend controls, and separate explicit authorization for paid execution. The exac
 command and example budget are documented above and in README/.env.example.
 Live authentication, model behavior, billed cost and abnormal-crash isolation
 remain unverified. No GitHub push is part of this local commit milestone.
+
+## Benchmark Engine v1 verification - 27 October 2026
+
+Started from local commit 1a7af3d with a clean working tree. Implemented the v1
+engine, metrics/reporting, manifest schema and neutral task/policy separation;
+no new dependencies, paid API calls, checkpoint recovery, Git commit or push.
+Preserved the optional adapter's tool policy, credentials boundary, budget guard
+and independent grading. Existing scripted behavior and evaluator rules remain.
+
+Scripted trials now grade final committed state after the server stops, including
+when the driver raises an error. The benchmark wrapper records errors separately
+from the independent business outcome. Driver duration is recorded by both
+existing runners, and benchmark wall time also includes orchestration/cleanup.
+
+| Check | Actual result |
+| --- | --- |
+| Ruff across the project | Passed |
+| Complete pytest with LAB_TEST_BROWSER_USE=1 and installed optional SDK | 73 passed, no skips |
+| Frontend TypeScript/Vite production build | Passed |
+| Original HTTP controls | Three CONTROL OK; exit 0 |
+| Original Chromium controls | Three CONTROL OK; exit 0 |
+| Seeded HTTP benchmark, 3 repetitions x 2 scenarios x 2 strategies | 12 completed isolated trials; exit 0 |
+| Seeded Chromium benchmark, 2 repetitions x 2 scenarios x 2 strategies | 8 completed isolated trials; exit 0 |
+| Independent regrading of example databases | All 20 snapshots matched raw reports and reproduced the benchmark grades |
+| Offline reconstruction of both reports | Passed; no provider configuration or calls |
+| HTML loaded in Chromium with network offline and JavaScript disabled | Both rendered; 4 comparison groups and all individual evidence links present; no external requests |
+| git diff --check | Passed |
+
+The full available suite was rerun after the final interruption/evidence fixes.
+The optional SDK test uses real Chromium but a completely mocked model; it is
+not a successful real AI-agent evaluation. Engine fixtures are explicitly labeled
+mocked_adapter_test and cannot be relabeled as real trials by an injected executor.
+The actual example benchmarks below use scripted controls only.
+
+Engine tests cover canonical seeded pairing/order, immutable output directories,
+separate paths for every slot, run-wide budget admission with no refunds after
+errors, explicit paid opt-in, neutral/policy task versioning, Wilson reference
+values, incomplete token usage and cost subtotals, correct failed/missing-trial
+denominators, interruption artifacts, raw error suppression, HTML escaping,
+evidence-link containment, missing-evidence labeling and offline-only analysis.
+An actual 8-trial HTTP test checks separate SQLite state and unique server PIDs.
+A separate interruption test aborts an actual HTTP control and confirms that its
+server is stopped. Another driver-failure test commits a customer then raises:
+the business grader passes the committed effects while execution still fails.
+
+### Generated examples
+
+Executed with ordering seed 42, no model:
+
+```sh
+python -m lab.benchmark --scenario normal lost-confirmation --strategy blind-retry verify --trials 3 --seed 42 --transport http --output runs/benchmark_v1_http_20261027_a
+python -m lab.benchmark --scenario normal lost-confirmation --strategy blind-retry verify --trials 2 --seed 42 --transport browser --output runs/benchmark_v1_browser_20261027_a
+python -m lab.benchmark --analyze runs/benchmark_v1_http_20261027_a
+python -m lab.benchmark --analyze runs/benchmark_v1_browser_20261027_a
+```
+
+Commands used the project's .venv/Scripts/python.exe. Ruff and pytest likewise
+used that environment; npm.cmd avoids PowerShell's npm.ps1 policy restriction.
+The ordinary uv run forms in README target the same project environment.
+
+| Transport | Strategy/scenario | Success | Duplicate-action rate | Median wall seconds |
+| --- | --- | --- | --- | --- |
+| HTTP | Blind retry / normal | 3/3 | 0/3 | 1.734 |
+| HTTP | Verification / normal | 3/3 | 0/3 | 1.734 |
+| HTTP | Blind retry / lost confirmation | 0/3 | 3/3 | 2.453 |
+| HTTP | Verification / lost confirmation | 3/3 | 0/3 | 2.438 |
+| Chromium | Blind retry / normal | 2/2 | 0/2 | 2.851 |
+| Chromium | Verification / normal | 2/2 | 0/2 | 3.016 |
+| Chromium | Blind retry / lost confirmation | 0/2 | 2/2 | 3.805 |
+| Chromium | Verification / lost confirmation | 2/2 | 0/2 | 3.766 |
+
+There were no execution errors or missing evaluations in these 20 trials, so
+operational/business success match. Every lost-confirmation blind-retry result
+contains exactly duplicate_customer with two matching new customers/events; that
+business failure is expected and its scripted control succeeds. Normal/recovery
+have one correct new customer/event. Wilson 95% intervals are stored in the JSON
+and HTML (for example 3/3 is approximately [43.85%, 100%], 0/3 [0%, 56.15%]).
+These small deterministic-control samples demonstrate engine behavior, not agent
+generalization or comparative AI capability. Timings are measured and include
+fresh browser/server startup where applicable. Model calls, token usage and
+estimated/billed model costs are unavailable, not invented zero-cost AI results.
+
+Artifacts (all ignored by Git):
+
+- runs/benchmark_v1_http_20261027_a/report.html
+- runs/benchmark_v1_browser_20261027_a/report.html
+- manifest.json, summary.json and per-slot trials/trial-NNNNNN/result.json in each
+  benchmark directory, plus raw runner results/databases/logs and browser traces
+  and screenshots under each slot's evidence/ directory.
+- report-preview.png in each benchmark directory confirms offline rendering.
+- Original HTTP controls: runs/20261026T184300Z_2b9e9206/report.html
+- Original Chromium controls: runs/20261026T184308Z_b91bbb5b/report.html
+
+### Remaining scope and interpretation
+
+The seed makes schedule/order/task data deterministic, not process IDs, ports,
+timings or model outputs. V1 is sequential, with no execution resume, parallel
+load testing, checkpoint recovery, held-out customer variants or paired bootstrap
+comparisons. After an abrupt stop, analyze can reconstruct partial evidence and
+unknown unfinished outcomes; it cannot recover unflushed OS/provider state or
+turn an interrupted trial into a success. No hard-kill or every browser crash
+mode was exhaustively tested. Existing Windows orphan-process and local-only
+security limitations remain as documented in README.
+
+Live basic/verification Browser Use benchmark arms are implemented but unverified
+with real Anthropic calls. They require environment-only key/model/prices,
+existing per-trial limits, explicit total estimated budget, provider-side spend
+controls and separate paid authorization. The token/cost accounting preserves
+unknown coverage and observed subtotals; upper-rate estimates and reservations
+are not invoices or guaranteed billing caps. No checkpoint arm can be selected.
+
+## Final benchmark review, local commit and pilot hold - 27 October 2026
+
+Reviewed all pending engine/runners/metrics/schema/tests/docs before the requested
+local commit. Added guards and eight regression cases for invalid model-call
+counts and malformed/inconsistent evaluations. False/float/string/negative call
+counts cannot turn unknown usage into measured zero. Invalid evaluations are
+recorded as evaluator execution errors and excluded from valid business grades.
+The independent database evaluator and tool/provider boundaries are unchanged.
+
+Final no-cost verification:
+
+| Check | Result |
+| --- | --- |
+| Ruff | Passed |
+| Complete available suite, including mocked SDK/Chromium smoke | 81 passed, no skips |
+| TypeScript/Vite production build | Passed |
+| Original HTTP controls | Three CONTROL OK; exit 0 |
+| Original Chromium controls | Three CONTROL OK; exit 0 |
+| Offline reconstruction of the 12-trial HTTP and 8-trial browser examples | Passed |
+| Git credential/output ignore checks | Passed |
+
+Latest original-control evidence:
+
+- runs/20261026T185806Z_271a8bbf/report.html (HTTP)
+- runs/20261026T185813Z_0ccac855/report.html (Chromium)
+
+Normal/recovery still pass with one customer/event; blind retry still produces
+the expected duplicate_customer failure and a passing control. All agent
+interactions in tests are mocked. No paid model call or live trial was executed.
+
+Pilot preparation is recorded in PILOT_READINESS.md. In the inspected execution
+environment, the provider, model, key, all limits and prices are absent. The
+proposed four-trial envelope has at most 16 calls and 656384 reserved combined
+units, subject to prices and token/USD admission; USD 4 is the proposed run-wide
+estimated allowance. No actual model or priced cost estimate is configured.
+Examples do not authorize spending. Local reservation guards and a worker
+deadline cannot guarantee provider billing; account-side controls are unverified.
+
+Only relevant source, schema, tests and documentation are intended for this local
+commit; credentials, dependencies and generated evidence stay ignored. No GitHub
+push is authorized. Live trials remain on hold until configuration, an actual
+priced usage review and separate explicit approval.

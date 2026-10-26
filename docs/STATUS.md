@@ -117,3 +117,44 @@ See VERIFICATION.md for evidence and remaining limitations.
 - Added [BENCHMARK_PLAN.md](BENCHMARK_PLAN.md): proposed arms, paired trial
   manifests, checkpoint protocol, aggregate budgets, metrics and acceptance gates.
   This is a development plan, not implemented benchmark functionality.
+
+## Benchmark Engine v1 - 27 October 2026
+
+- Implemented deterministic seeded, paired multi-trial scheduling with scenario,
+  strategy, repetition count, transport and output-directory CLI options.
+- Reuses existing HTTP/browser controls, Browser Use adapter and independent
+  grader. Fresh database/server/browser context per trial; sequential execution.
+- Selectable scripted blind-retry/verify and real-agent basic/verification-guided
+  policies. Added neutral agent task v1.1.0 while preserving v1.0.0 behavior.
+- Added atomic per-trial records and start journal, run-wide estimated-budget
+  admission, interruption-aware offline reconstruction, metrics/coverage and HTML
+  comparison/evidence reports. Success rates have Wilson 95% intervals.
+- Metric provenance distinguishes measured, estimated, unknown and unavailable;
+  mocked, scripted and real-agent kinds are never pooled together.
+- Added manifest schema and focused engine tests. Final commands/results and
+  generated examples are recorded in VERIFICATION.md.
+- Verified Ruff, 73 tests with the mocked SDK/Chromium smoke enabled, frontend
+  build, all original HTTP/browser controls, 12 actual HTTP benchmark trials and
+  8 actual Chromium benchmark trials. Offline reports rendered without network
+  access or JavaScript. All 20 saved benchmark databases were independently regraded.
+- No checkpoint recovery, paid calls, live model outcomes, Git commit or push.
+  Remaining work includes live pilot authorization/configuration, held-out tasks,
+  checkpoint policies, exact billing and paired bootstrap comparisons.
+
+## Benchmark review and pilot preparation - 27 October 2026
+
+- Reviewed and prepared Benchmark Engine v1 for a local commit. Hardened usage
+  parsing so invalid call counts cannot create measured zero token usage; invalid
+  or inconsistent evaluations become execution errors, never successful trials.
+- Added eight regression cases. Final full suite: 81 passed with the mocked SDK
+  smoke enabled; Ruff and frontend build passed. Existing scripted controls and
+  offline reconstruction remain verified; no paid APIs were used.
+- Added PILOT_READINESS.md. Actual provider/model, key, all limits and prices are
+  absent from the inspected environment. No model is configured. The proposed
+  four-trial envelope is NOT active configuration and NOT paid authorization.
+- Proposed limits: up to 16 model calls, 656384 combined reserved input/output
+  units, USD 4 run-wide estimated allowance (USD 1 per trial); actual pricing
+  remains unknown until an explicit model and conservative prices are supplied.
+- Local budget guards reserve before dispatch; they are not a provider billing
+  cap. Provider-side spending controls are still unverified. Live trials are on
+  hold pending configuration and explicit approval. Do not push this local work.

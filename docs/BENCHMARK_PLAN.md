@@ -1,17 +1,20 @@
-# Planned milestone: reproducible recovery benchmark
+# Reproducible recovery benchmark: v1 and remaining plan
 
-Status: design only. The current runner executes individual agent trials and
-scripted controls. Multi-trial agent scheduling, recovery policy arms,
-checkpointing, aggregation and statistical comparisons are NOT implemented.
-No real-agent benchmark results exist yet.
+Status: Benchmark Engine v1 implements sequential seeded multi-trial scheduling,
+paired scenario/repetition blocks, isolated trials, per-trial JSON, offline
+aggregation/reporting and Wilson binary intervals. Existing controls and the
+Browser Use adapter are reused. Both basic and verification-guided agent policies
+are selectable, but no real-agent benchmark or paid call has been executed.
+Checkpoint recovery is NOT implemented. This document retains future design
+requirements below; it does not declare all acceptance gates completed.
 
 ## Comparison arms
 
 | Arm | Planned behavior | Current support |
 | --- | --- | --- |
 | Blind retry | On uncertain confirmation, submit again without checking state | Scripted negative control only; label separately from AI results |
-| Basic Browser Use | Same base business task and browser tools, no recovery-specific guidance or checkpoint layer | Adapter exists, but current task includes verification guidance; a neutral task version is needed |
-| Verification-based recovery | On uncertain submission, search the CRM and inspect matching records before deciding whether to retry | Scripted positive control and task guidance exist; live agent behavior unverified |
+| Basic Browser Use | Same base business task and browser tools, no recovery-specific guidance or checkpoint layer | Implemented selectable v1.1.0 neutral task; live model outcome unverified |
+| Verification-based recovery | On uncertain submission, search the CRM and inspect matching records before deciding whether to retry | Scripted positive control and selectable v1.1.0 agent task plus policy guidance; live agent behavior unverified |
 | Checkpoint-based recovery | Track workflow phases and observed browser evidence, then resume by verifying an uncertain submission before retrying | Not implemented |
 
 Keep the scripted blind-retry baseline distinct from model-driven arms in tables
@@ -22,8 +25,36 @@ or zero model cost as if it measured the capability of an AI agent.
 The current v1.0.0 prompt instructs verification before retry. Do not relabel it
 as a neutral basic-agent baseline. Introduce a new task/policy version containing
 the same business objective and customer data but a neutral base instruction.
-Freeze the base task across agent arms; version recovery guidance/controllers
-separately so any differences are intentional and reviewable.
+The engine now supplies neutral v1.1.0 as the shared agent objective; recovery
+guidance is appended only for verification-browser-use. The policy identity is
+the strategy name plus policy version 1.0.0. Old v1.0.0 tasks/control metadata are
+preserved. Future task/policy edits must bump the appropriate version.
+
+## Implemented v1 scope
+
+- CLI: `python -m lab.benchmark`, with scenario/strategy selection, repetitions,
+  ordering seed, transport and a fresh output directory; `--analyze` is offline.
+- Manifest schema: benchmark-manifest-v1.schema.json. Canonical scenario/strategy
+  ordering and seeded arm shuffling create a reproducible paired schedule.
+- Durable trial slots, start journal, conservative run-wide agent budget admission,
+  no automatic retries, interruption-aware partial reports and local evidence links.
+- Separate metric groups by result kind, strategy, scenario, transport, task/policy
+  versions and provider/model. Wilson 95% intervals for binary rates; explicit
+  denominators and missing evaluations. Timing/call/token/estimated-cost coverage
+  is labeled measured, estimated, unknown or unavailable; reservations are separate.
+- Each trial reuses existing runner/grader isolation. Scripted driver errors now
+  still trigger independent grading after server shutdown. Assertions/faults stay
+  operator-owned; model tools/security limits remain unchanged.
+- Source commit/dirty-tree content digest, tracked-patch digest, dependency lock
+  hashes and installed package versions are recorded. Actual control Chromium
+  version is recorded per browser trial. Raw traces and SQLite evidence stay local.
+
+V1 does not implement resumable execution, checkpoints, parallel execution,
+held-out customer variants, exact provider invoice reconciliation or paired
+bootstrap comparisons. Seeded scheduling does not make provider outputs or OS
+timings deterministic. A live run still needs explicit provider/key/model,
+per-trial limits, total budget and separate paid authorization. The Python CLI
+requires --allow-paid for agent strategies; the development work did not use it.
 
 ## Reproducible trial manifest and execution
 

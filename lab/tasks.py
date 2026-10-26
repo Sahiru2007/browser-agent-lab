@@ -1,6 +1,6 @@
 """Operator-owned, versioned task definitions. Never pass this object to an agent."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from lab.database import SEED_CUSTOMERS
 
@@ -39,3 +39,18 @@ def customer_task(scenario: str) -> Task:
         },
         fault=faults[scenario],
     )
+
+
+def benchmark_task(scenario: str, strategy: str) -> Task:
+    """Neutral shared business task; recovery guidance is a versioned policy."""
+    task = customer_task(scenario)
+    instruction = (
+        "Create a customer named Nimal Silva, email nimal@example.test, "
+        "company Evergreen Farms. Create this customer exactly once."
+    )
+    if strategy == "verification-browser-use":
+        instruction += (
+            " If a submission cannot be confirmed, search the CRM and inspect "
+            "the matching customer before deciding whether to retry."
+        )
+    return replace(task, version="1.1.0", instruction=instruction)

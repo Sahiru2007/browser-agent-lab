@@ -233,11 +233,97 @@ real-agent evaluations. Live provider authentication, model quality, billed cost
 and recovery by an actual AI agent remain unverified. No paid calls were made
 while implementing this milestone. See docs/VERIFICATION.md for actual results.
 
-The next benchmark milestone is specified in [docs/BENCHMARK_PLAN.md](docs/BENCHMARK_PLAN.md).
-It plans repeated comparisons of blind retry, basic Browser Use, verification
-recovery and checkpoint recovery, with independently graded outcomes and usage,
-timing and cost metrics. Scheduling, checkpoints and aggregate analysis are not
-implemented yet.
+## Benchmark Engine v1
+
+Run seeded, paired repetitions of the existing scripted strategies without a model:
+
+```sh
+uv run python -m lab.benchmark --scenario normal lost-confirmation --strategy blind-retry verify --trials 3 --seed 42 --transport http --output runs/my-http-benchmark
+uv run python -m lab.benchmark --scenario normal lost-confirmation --strategy blind-retry verify --trials 2 --seed 42 --transport browser --output runs/my-browser-benchmark
+```
+
+`--trials` means repetitions **per scenario and strategy**: the first command
+starts 12 isolated trials. The output directory must not exist; prior evidence is
+never overwritten. Omitting `--output` creates a unique directory under runs/.
+Use runs/ to keep artifacts ignored by Git; custom paths elsewhere are not
+automatically added to .gitignore.
+Defaults are both scenarios, both scripted strategies, one repetition, browser
+transport and ordering seed 0. No checkpoint strategy exists.
+
+Each block pairs the same scenario/repetition across strategies, shuffling arm
+order with the recorded seed. IDs, task data, policies and schedule are deterministic;
+ports, process IDs, timings and model outputs are not. Every trial gets a fresh
+database/server and browser context/profile. Browser controls launch a fresh
+Chromium process as well. Execution is sequential; this is not a load test.
+
+Real-agent strategies are `basic-browser-use` (neutral task v1.1.0) and
+`verification-browser-use` (same objective plus versioned recovery guidance).
+The existing v1.0.0 task and scripted controls remain unchanged in behavior.
+Agent arms use the existing Browser Use adapter, filtered environment, restricted
+tools, limits and independent grader. Only browser transport is allowed for agent
+arms. Live execution requires all existing environment configuration, explicit
+paid authorization and `--max-cost-usd` for the entire run. For example, **only
+after separate paid authorization**, two agent arms across two scenarios with
+one repetition each can use:
+
+```sh
+uv run --extra agent python -m lab.benchmark --strategy basic-browser-use verification-browser-use --scenario normal lost-confirmation --trials 1 --seed 42 --allow-paid --max-cost-usd 4 --output runs/live-agent-pilot
+```
+
+That example assumes the per-trial estimated cap is USD 1. Before each agent
+trial the full per-trial cap is durably reserved from the run-wide budget; no
+refund is made for failures, low usage or unknown usage. Trials exceeding the
+remaining allowance are labeled `not_run_budget`, never silently dropped. The
+scheduled trial count bounds calls to the runner; no automatic retries occur.
+This project has not run that paid command or measured real-agent performance.
+
+Outputs are manifest.json, summary.json, report.html and
+trials/trial-NNNNNN/result.json, with raw runner JSON/database/logs and browser
+screenshots/traces beneath each trial's evidence/ directory. The manifest records
+the seed, complete schedule, task/policy versions, model/limits, lockfile hashes,
+source commit and dirty-working-tree digest, and installed framework versions.
+Its schema is [docs/benchmark-manifest-v1.schema.json](docs/benchmark-manifest-v1.schema.json).
+The offline report needs no internet, CDN or JavaScript and links individual trial
+evidence. Recompute it without execution, credentials or model calls:
+
+```sh
+uv run python -m lab.benchmark --analyze runs/my-http-benchmark
+```
+
+Reports separate scripted HTTP/browser controls, real-agent trials and mocked
+tests by kind, strategy, scenario, task/policy version and model. Operational
+success uses all started trials; business success and duplicate-action rates use
+valid independent evaluations, with missing evaluations counted explicitly.
+Binary rates include Wilson 95% intervals. They describe the observed sample;
+intervals for deterministic scripted controls are not measurements of AI ability.
+Repeated-click counts are not the definition of duplicate business effects.
+
+Every metric has a `measured`, `estimated`, `unknown` or `unavailable` status.
+Timing summaries include wall/driver durations where recorded, median and p95.
+Model calls, reported input/output/cache tokens, upper-rate cost estimates and
+conservative budget reservations are retained separately; scripted model metrics
+are unavailable rather than zero-cost AI results. Partial usage remains unknown
+with known subtotals and explicit coverage. Provider invoices are unavailable.
+Timeout/interruption wall times include cleanup and do not imply completed-task
+latency. Costs still depend on operator-supplied price ceilings and the adapter's
+documented estimation limits; use provider spending caps.
+
+Trial records and reservations are written atomically before dispatch. Ctrl+C
+retains completed/interrupted/not-started slots and generates a partial report;
+after abrupt termination, `--analyze` recognizes unfinished records without
+rerunning them. This is evidence recovery, not checkpoint-based task recovery or
+resume. No bootstrapped paired differences or held-out customer variants exist
+yet. See [docs/BENCHMARK_PLAN.md](docs/BENCHMARK_PLAN.md) for remaining work.
+
+Exit codes: 0 means scheduling finished without execution/control errors (the
+scripted blind-retry business failure is expected), 1 means a real-agent business
+failure, 2 means execution errors or budget-skipped trials, and 130 means an
+interrupted run. Offline analysis returns 0 when reconstruction succeeds; it does
+not declare the underlying trials successful.
+
+The current live-run configuration check and proposed bounded pilot are documented
+in [docs/PILOT_READINESS.md](docs/PILOT_READINESS.md). Live execution is on hold;
+example limits are not active model configuration or authorization.
 
 ## GitHub repository
 

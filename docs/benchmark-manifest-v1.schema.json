@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Browser Agent Lab benchmark manifest v1",
+  "type": "object",
+  "required": ["schema_version", "benchmark_version", "created_at", "seed", "repetitions", "schedule", "planned_trials", "agent_config", "max_cost_usd", "reserved_run_cost_usd", "started_trial_ids", "state", "provenance"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "benchmark_version": {"const": "1.0.0"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "seed": {"type": "integer"},
+    "repetitions": {"type": "integer", "minimum": 1},
+    "planned_trials": {"type": "integer", "minimum": 1},
+    "agent_config": {"type": ["object", "null"]},
+    "max_cost_usd": {"type": ["number", "null"], "exclusiveMinimum": 0},
+    "reserved_run_cost_usd": {"type": "number", "minimum": 0},
+    "started_trial_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^trial-[0-9]{6,}$"}},
+    "state": {"enum": ["planned", "running", "interrupted", "finished"]},
+    "mocked": {"type": "boolean"},
+    "provenance": {"type": "object"},
+    "schedule": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["trial_id", "block_id", "repetition", "scenario", "strategy", "transport", "task_id", "task_version", "policy_version", "kind", "provider", "model"],
+        "properties": {
+          "trial_id": {"type": "string", "pattern": "^trial-[0-9]{6,}$"},
+          "block_id": {"type": "string"},
+          "repetition": {"type": "integer", "minimum": 1},
+          "scenario": {"enum": ["normal", "lost-confirmation"]},
+          "strategy": {"enum": ["blind-retry", "verify", "basic-browser-use", "verification-browser-use"]},
+          "transport": {"enum": ["http", "browser"]},
+          "task_id": {"const": "customer.create_once"},
+          "task_version": {"enum": ["1.0.0", "1.1.0"]},
+          "policy_version": {"const": "1.0.0"},
+          "kind": {"enum": ["scripted_http_control", "scripted_browser_control", "real_ai_agent_trial"]},
+          "provider": {"type": ["string", "null"]},
+          "model": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }
+}

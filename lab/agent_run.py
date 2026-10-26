@@ -57,6 +57,7 @@ def run_trial(task, adapter, config, output):
                 if report["before"]["customers"] != list(task.starting_data):
                     raise RuntimeError("Starting data differs from versioned task")
                 try:
+                    driver_started = time.monotonic()
                     report["agent"] = adapter.execute(
                         AgentRequest(url, task.instruction), config, output)
                     report["execution_error"] = report["agent"].get("execution_error")
@@ -64,6 +65,9 @@ def run_trial(task, adapter, config, output):
                     report["execution_error"] = "limit:ExecutionTimeout"
                 except Exception as exc:
                     report["execution_error"] = f"adapter:{type(exc).__name__}"
+                finally:
+                    report["driver_duration_seconds"] = round(
+                        time.monotonic() - driver_started, 6)
             except Exception as exc:
                 report["execution_error"] = f"infrastructure:{type(exc).__name__}"
             finally:

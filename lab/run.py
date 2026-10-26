@@ -134,6 +134,8 @@ def run_case(browser, case: dict, output: Path, transport: str) -> dict:
     }
     engine = make_engine(database_url)
     context = None
+    before = None
+    stage = "infrastructure"
     with (folder / "server.log").open("w", encoding="utf-8") as logfile:
         process = subprocess.Popen(
             [
@@ -156,6 +158,8 @@ def run_case(browser, case: dict, output: Path, transport: str) -> dict:
         try:
             wait_ready(base_url, process)
             before = snapshot(engine)
+            stage = "driver"
+            driver_started = time.monotonic()
             if transport == "browser":
                 context = browser.new_context()
                 context.tracing.start(screenshots=True, snapshots=True, sources=False)
@@ -166,16 +170,9 @@ def run_case(browser, case: dict, output: Path, transport: str) -> dict:
                 page.screenshot(path=str(folder / "final.png"), full_page=True)
             else:
                 report["observation"] = drive_http(base_url, case)
-            after = snapshot(engine)
-            report["before"] = before
-            report["after"] = after
-            report["evaluation"] = evaluate(before, after, EXPECTED)
-            triggered = after["faults"]
-            report["fault_was_triggered"] = (
-                len(triggered) == 0 if case["fault"] == "none" else len(triggered) == 1
-            )
+            report["driver_duration_seconds"] = round(time.monotonic() - driver_started, 6)
         except Exception as exc:
-            report["execution_error"] = f"{type(exc).__name__}: {exc}"
+            report["execution_error"] = f"{stage}:{type(exc).__name__}"
         finally:
             if context is not None:
                 try:
@@ -192,6 +189,18 @@ def run_case(browser, case: dict, output: Path, transport: str) -> dict:
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait()
+            if before is not None:
+                try:
+                    after = snapshot(engine)
+                    report["before"] = before
+                    report["after"] = after
+                    report["evaluation"] = evaluate(before, after, EXPECTED)
+                    triggered = after["faults"]
+                    report["fault_was_triggered"] = (
+                        len(triggered) == 0 if case["fault"] == "none" else len(triggered) == 1
+                    )
+                except Exception as exc:
+                    report["execution_error"] = f"evaluator:{type(exc).__name__}"
             engine.dispose()
     report["duration_seconds"] = round(time.monotonic() - started, 3)
     report["control_behaved_as_expected"] = (
