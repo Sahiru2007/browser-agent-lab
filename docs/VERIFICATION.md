@@ -427,3 +427,73 @@ Only relevant source, schema, tests and documentation are intended for this loca
 commit; credentials, dependencies and generated evidence stay ignored. No GitHub
 push is authorized. Live trials remain on hold until configuration, an actual
 priced usage review and separate explicit approval.
+
+## Two-trial pilot planning check - 27 October 2026
+
+Documentation-only revision: replaced the four-trial proposal with exactly two
+scenarios and a single verification-browser-use policy. Inspected Browser Use
+0.13.11, anthropic 1.17.0, installed ChatAnthropic request/usage serialization,
+current task wording and existing scheduler/budget guards. No accounting,
+dispatch or SDK source was modified.
+
+Reviewed current official Anthropic model, pricing, spend/workspace-limit and
+API-credit documentation; direct source links and checked prices are preserved
+in PILOT_READINESS.md. Explicitly recommended claude-haiku-4-5-20251001 as an
+available legacy snapshot; no model was configured and access remains untested.
+The adapter requests cacheable tool/system blocks and reports cache creation
+separately from normalized prompt_tokens, so existing token-derived cost summaries
+can omit writes. This limitation is disclosed, not silently changed.
+
+No-cost validation checks the proposed command's schedule has exactly two slots,
+one for each scenario, both with the same instruction/initial customers. The
+canonical scheduler runs lost-confirmation first; the document distinguishes
+case enumeration from dispatch order. Checked $1/trial, $2 aggregate admission,
+40000 input plus 1024 output reservation per call, four calls per trial: 328192
+combined units for both trials. At $2/$5 input/output ceilings, reservations are
+$0.08512/call, $0.34048/trial and $0.68096 for both, conditional on the configured
+bounds. These are not billing guarantees or actual model usage measurements.
+
+No live command, credentials request, provider account mutation or paid API call
+was made. No implementation tests were rerun for documentation-only changes;
+the earlier 81-test result is historical. git diff --check and offline plan
+validation are the checks for this revision. The recommendation, full required
+environment, exact two-trial command and operator checklist are in PILOT_READINESS.md.
+
+## Authorized normal-first pilot: preflight only - 27 October 2026
+
+The operator approved exactly two live trials of claude-haiku-4-5-20251001 with
+$1/trial and $2 total estimated allowances, then explicitly requested that the
+pilot remain blocked. This approval is retained; execution is on user hold.
+
+Read the current pilot plan, runner scheduling and call-budget code. Checked
+nonsecret environment settings and API-key presence without printing credentials.
+All required execution settings were absent; AgentConfig validation failed on
+missing LAB_AGENT_PROVIDER. The API key was absent in execution/User/Machine
+environments and there was no .env file. No provider client or trial was started,
+so authentication, model compatibility and live accounting could not be verified.
+
+Before any dispatch, reported that the limit is four model calls per trial,
+eight total. At the approved 40000 input/1024 output units per call and $2/$5
+per-million price ceilings, estimated reservations are $0.08512/call,
+$0.34048/trial, $0.68096 combined. Full trial allowances sum to $2. None was
+reserved for actual execution. These guards do not guarantee a billing cap.
+
+PILOT_READINESS.md replaces the combined reverse-order command with supported
+single-scenario runs, each using --trials 1 and --max-cost-usd 1: normal first,
+manual evidence/accounting gate, lost confirmation second only if eligible.
+The same verification policy, model, wording and equivalent initial data apply.
+The pair's fixed two-case authorization bounds the total at $2; the engine does
+not provide a shared cross-run budget or automatic gate. No reruns or limit
+increases are authorized.
+
+Ignored preflight artifact: runs/pilot_preflight_20261026T193033Z/preflight.json.
+It is labeled pilot_preflight_not_trial_results, with zero live trials started
+and zero model calls dispatched. Both cases are not_started; database evaluations
+and provider usage are null, and failure triggers are not_exercised. No actual
+cost, successful business outcome or failure-trigger behavior is claimed.
+
+No source code, accounting/dispatch control, credential or provider account was
+changed. No trial, retry, paid API call, commit or GitHub push was performed.
+Only offline plan/documentation checks apply to this preflight. The remaining
+blockers are private environment configuration and the operator lifting the hold;
+the two-trial approval itself need not be requested again within its stated limits.

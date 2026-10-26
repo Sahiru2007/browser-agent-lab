@@ -158,3 +158,38 @@ See VERIFICATION.md for evidence and remaining limitations.
 - Local budget guards reserve before dispatch; they are not a provider billing
   cap. Provider-side spending controls are still unverified. Live trials are on
   hold pending configuration and explicit approval. Do not push this local work.
+
+## Two-trial pilot document revision - 27 October 2026
+
+- PILOT_READINESS.md now proposes exactly one normal and one lost-confirmation
+  trial, using only verification-browser-use with identical task wording and
+  equivalent initial data. This supersedes the earlier four-trial/$4 proposal.
+- Explicit recommendation: claude-haiku-4-5-20251001, an available legacy snapshot
+  compatible with the inspected pinned adapter's tool-response path. It has not
+  been configured or called. Official pricing/limits were reviewed on this date.
+- Proposed admission allowances are $1 per trial/$2 total. Existing call/token
+  ceilings permit at most eight calls and 328192 combined reserved units. At
+  conservative $2/$5 per-million input/output ceilings, call reservations total
+  at most $0.68096 under those bounds; no guaranteed billing cap is claimed.
+- Documented caching/tool overhead, the installed SDK's separately reported
+  cache-write usage, required environment settings and provider-side controls.
+  No usage accounting, dispatch controls, implementation features or credentials
+  were changed. Paid execution remains disabled pending explicit approval.
+
+## Approved pilot preflight: blocked on user hold - 27 October 2026
+
+- Approval received for exactly two trials with claude-haiku-4-5-20251001,
+  $1/trial and $2 total estimated allowances; subsequently the operator said
+  "Keep the pilot blocked for now." No model calls or trials started.
+- Preflight found no execution configuration, no ANTHROPIC_API_KEY in execution
+  or persistent User/Machine environments, and no .env file. Credentials were
+  checked only for presence, never printed or requested in chat.
+- Confirmed four model calls per trial/eight across the pilot. Conditional
+  reservations are $0.08512/call, $0.34048/trial, $0.68096 combined, within the
+  approved $1/$2 estimated allowances. No execution allowance was reserved.
+- Plan now uses supported single-scenario commands: normal first, inspect its
+  execution/accounting/database outcome, then lost confirmation only if the gate
+  passes and the hold is lifted. Each run has a $1 allowance; the two-case ledger
+  bounds the pair to $2. No reverse-order combined command will be used.
+- Preflight evidence: runs/pilot_preflight_20261026T193033Z/preflight.json.
+  Both business outcomes, provider usage and failure triggers remain unexercised.
