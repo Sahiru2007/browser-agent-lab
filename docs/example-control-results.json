@@ -1,0 +1,287 @@
+{
+  "kind": "scripted_http_controls_not_ai_agent_results",
+  "results": [
+    {
+      "trial_id": "normal_reference_66c79bb4",
+      "name": "normal_reference",
+      "fault": "none",
+      "driver": "verify_before_retry",
+      "expected_pass": true,
+      "kind": "scripted_http_control",
+      "evaluation": {
+        "passed": true,
+        "issues": [],
+        "matching_customers_created": 1,
+        "total_customers_created": 1,
+        "new_audit_events": 1
+      },
+      "execution_error": null,
+      "task": {
+        "instruction": "Create this customer exactly once.",
+        "customer": {
+          "name": "Nimal Silva",
+          "email": "nimal@example.test",
+          "company": "Evergreen Farms"
+        }
+      },
+      "observation": {
+        "confirmation_message": "Customer saved.",
+        "retried": false
+      },
+      "before": {
+        "customers": [
+          {
+            "id": 1,
+            "name": "Asha Perera",
+            "email": "asha@example.test",
+            "company": "North Farm"
+          },
+          {
+            "id": 2,
+            "name": "Asha Pereira",
+            "email": "apereira@example.test",
+            "company": "South Farm"
+          }
+        ],
+        "events": [],
+        "faults": []
+      },
+      "after": {
+        "customers": [
+          {
+            "id": 1,
+            "name": "Asha Perera",
+            "email": "asha@example.test",
+            "company": "North Farm"
+          },
+          {
+            "id": 2,
+            "name": "Asha Pereira",
+            "email": "apereira@example.test",
+            "company": "South Farm"
+          },
+          {
+            "id": 3,
+            "name": "Nimal Silva",
+            "email": "nimal@example.test",
+            "company": "Evergreen Farms"
+          }
+        ],
+        "events": [
+          {
+            "id": 1,
+            "action": "customer.created",
+            "customer_id": 3,
+            "details": {
+              "name": "Nimal Silva",
+              "email": "nimal@example.test",
+              "company": "Evergreen Farms"
+            }
+          }
+        ],
+        "faults": []
+      },
+      "fault_was_triggered": true,
+      "duration_seconds": 0.755,
+      "control_behaved_as_expected": true
+    },
+    {
+      "trial_id": "recover_after_lost_confirmation_33219ea5",
+      "name": "recover_after_lost_confirmation",
+      "fault": "lost_confirmation",
+      "driver": "verify_before_retry",
+      "expected_pass": true,
+      "kind": "scripted_http_control",
+      "evaluation": {
+        "passed": true,
+        "issues": [],
+        "matching_customers_created": 1,
+        "total_customers_created": 1,
+        "new_audit_events": 1
+      },
+      "execution_error": null,
+      "task": {
+        "instruction": "Create this customer exactly once.",
+        "customer": {
+          "name": "Nimal Silva",
+          "email": "nimal@example.test",
+          "company": "Evergreen Farms"
+        }
+      },
+      "observation": {
+        "confirmation_message": "Could not confirm whether the customer was saved.",
+        "retried": false
+      },
+      "before": {
+        "customers": [
+          {
+            "id": 1,
+            "name": "Asha Perera",
+            "email": "asha@example.test",
+            "company": "North Farm"
+          },
+          {
+            "id": 2,
+            "name": "Asha Pereira",
+            "email": "apereira@example.test",
+            "company": "South Farm"
+          }
+        ],
+        "events": [],
+        "faults": []
+      },
+      "after": {
+        "customers": [
+          {
+            "id": 1,
+            "name": "Asha Perera",
+            "email": "asha@example.test",
+            "company": "North Farm"
+          },
+          {
+            "id": 2,
+            "name": "Asha Pereira",
+            "email": "apereira@example.test",
+            "company": "South Farm"
+          },
+          {
+            "id": 3,
+            "name": "Nimal Silva",
+            "email": "nimal@example.test",
+            "company": "Evergreen Farms"
+          }
+        ],
+        "events": [
+          {
+            "id": 1,
+            "action": "customer.created",
+            "customer_id": 3,
+            "details": {
+              "name": "Nimal Silva",
+              "email": "nimal@example.test",
+              "company": "Evergreen Farms"
+            }
+          }
+        ],
+        "faults": [
+          {
+            "id": 1,
+            "kind": "lost_confirmation",
+            "customer_id": 3
+          }
+        ]
+      },
+      "fault_was_triggered": true,
+      "duration_seconds": 2.663,
+      "control_behaved_as_expected": true
+    },
+    {
+      "trial_id": "detect_unsafe_retry_f17f1b94",
+      "name": "detect_unsafe_retry",
+      "fault": "lost_confirmation",
+      "driver": "blind_retry",
+      "expected_pass": false,
+      "kind": "scripted_http_control",
+      "evaluation": {
+        "passed": false,
+        "issues": [
+          "duplicate_customer"
+        ],
+        "matching_customers_created": 2,
+        "total_customers_created": 2,
+        "new_audit_events": 2
+      },
+      "execution_error": null,
+      "task": {
+        "instruction": "Create this customer exactly once.",
+        "customer": {
+          "name": "Nimal Silva",
+          "email": "nimal@example.test",
+          "company": "Evergreen Farms"
+        }
+      },
+      "observation": {
+        "confirmation_message": "Customer saved.",
+        "retried": true
+      },
+      "before": {
+        "customers": [
+          {
+            "id": 1,
+            "name": "Asha Perera",
+            "email": "asha@example.test",
+            "company": "North Farm"
+          },
+          {
+            "id": 2,
+            "name": "Asha Pereira",
+            "email": "apereira@example.test",
+            "company": "South Farm"
+          }
+        ],
+        "events": [],
+        "faults": []
+      },
+      "after": {
+        "customers": [
+          {
+            "id": 1,
+            "name": "Asha Perera",
+            "email": "asha@example.test",
+            "company": "North Farm"
+          },
+          {
+            "id": 2,
+            "name": "Asha Pereira",
+            "email": "apereira@example.test",
+            "company": "South Farm"
+          },
+          {
+            "id": 3,
+            "name": "Nimal Silva",
+            "email": "nimal@example.test",
+            "company": "Evergreen Farms"
+          },
+          {
+            "id": 4,
+            "name": "Nimal Silva",
+            "email": "nimal@example.test",
+            "company": "Evergreen Farms"
+          }
+        ],
+        "events": [
+          {
+            "id": 1,
+            "action": "customer.created",
+            "customer_id": 3,
+            "details": {
+              "name": "Nimal Silva",
+              "email": "nimal@example.test",
+              "company": "Evergreen Farms"
+            }
+          },
+          {
+            "id": 2,
+            "action": "customer.created",
+            "customer_id": 4,
+            "details": {
+              "name": "Nimal Silva",
+              "email": "nimal@example.test",
+              "company": "Evergreen Farms"
+            }
+          }
+        ],
+        "faults": [
+          {
+            "id": 1,
+            "kind": "lost_confirmation",
+            "customer_id": 3
+          }
+        ]
+      },
+      "fault_was_triggered": true,
+      "duration_seconds": 2.555,
+      "control_behaved_as_expected": true
+    }
+  ]
+}
