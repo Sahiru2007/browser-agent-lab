@@ -17,9 +17,9 @@ The application intentionally permits duplicate emails to make duplicate effects
 observable. This is not a recommendation for production CRM database design.
 
 ## Next milestones
-- Add a Browser Use adapter, provider configuration, step/time/cost limits, and
-  clearly separated agent results. Use browser-only privileges.
-- Version task definitions and add more creation/editing workflows.
+- Verify the optional Browser Use adapter with an explicitly authorized live
+  provider/model and budget; no live AI-agent result is claimed yet.
+- Add more versioned creation/editing workflows.
 - Add authentication and session-expiry scenarios; UI variants and slow reads.
 - Introduce an append-only audit ledger for create/edit/delete verification.
 - Add a separate read-only PostgreSQL evaluator role, migrations with Alembic,
@@ -28,7 +28,8 @@ observable. This is not a recommendation for production CRM database design.
 - Add a report interface and a documented external staging-app integration.
 
 ## Limitations
-- No real AI agent or model API call yet; controls are scripted Playwright drivers.
+- Optional Browser Use adapter implemented; no live model trial verified yet.
+  Existing controls remain scripted Playwright drivers, not agent results.
 - An HTTP transport also exercises the server/grader when Chromium is unavailable.
   This is not a substitute for browser verification; reports identify transport.
 - No login, customer editing, pagination, or external-site support yet.
@@ -54,3 +55,65 @@ observable. This is not a recommendation for production CRM database design.
 - No paid model calls, AI-agent runs, or PostgreSQL checks were performed.
 
 See VERIFICATION.md for evidence and remaining limitations.
+
+## Local browser verification milestone - 26 October 2026
+
+- Reinstalled dependencies from both existing lockfiles; ensured the matching
+  Playwright Chromium was installed. No dependency or implementation changes needed.
+- Re-ran Ruff, all 13 tests, frontend production build, HTTP controls, and Chromium
+  controls successfully. All six controls returned CONTROL OK with no execution errors.
+- Independently read and regraded each saved trial database, comparing it with
+  result.json. Inspected each browser trace's form actions and network evidence.
+- Normal: one correct customer and creation event; business PASS.
+- Lost confirmation with verification: aborted POST, then browser search found the
+  committed customer; one customer/event, business PASS, no retry.
+- Blind retry: aborted first POST followed by successful second POST; two correct
+  customers/events, business FAIL with duplicate_customer, as intended.
+- Confirmed separate trial databases, server processes, and browser contexts.
+  Latest evidence paths and timings are in VERIFICATION.md.
+- Started the normal demonstration CRM at http://127.0.0.1:8000 and verified
+  health, frontend response, and rendered customer directory in Chromium.
+- Only documentation changed; no GitHub push, model calls, or new features.
+- Remaining limitations: nonfatal TestClient deprecation warning; optional
+  PostgreSQL remains unverified. Sandbox process startup failed, so commands ran
+  with approved execution outside it. No outstanding user action is required.
+
+## Browser Use adapter milestone - 26 October 2026
+
+- Added optional pinned Browser Use 0.13.11 extra, a small adapter boundary,
+  customer.create_once v1.0.0 operator task, and a separate one-trial agent runner.
+- Agent receives only the CRM URL/instruction and a restricted browser action
+  registry. Assertions, seed data, fault mode and database remain operator-owned.
+- Explicit Anthropic provider/model/key and step/time/call/token/USD budgets are
+  required. No defaults authorize model use; live CLI also requires --allow-paid.
+- Added model-call reservations, provider usage capture, filtered worker
+  environment, temporary profiles, deadline supervision and independent grading
+  even after execution errors. Agent success claims cannot override DB failure.
+- SDK telemetry/cloud sync, automatic dotenv, LLM judging, and file/code tools
+  are disabled. Reports distinguish real trials, controls and mocked tests.
+- Mocked tests and a real-SDK/Chromium smoke passed without provider calls.
+  Full final verification and generated report paths are recorded below in
+  VERIFICATION.md. Live authentication, model performance and billing are unverified.
+- Cost guard is an estimate using user-supplied price ceilings and text-size
+  heuristics; use a provider-side spending cap. This is not an OS/network sandbox.
+- No paid calls, Browser Use success benchmark, Git commit or GitHub push made.
+
+## Adapter review and benchmark preparation - 26 October 2026
+
+- Reviewed task/adapter separation, tool capabilities, usage budgets, subprocess
+  cleanup, independent grading, dependency lock and credential exclusions.
+- Fixed JSON-escaped credential redaction, blocked further calls after provider
+  errors/cancellation with unknown usage, and retained their original stop reason.
+- Enforced the browser-only tool policy after actual SDK Agent construction.
+  Added a worker kill/reap fallback if Windows tree cleanup cannot execute.
+- Added focused security/budget regression tests. Final results and evidence paths
+  are in VERIFICATION.md. No paid APIs or GitHub push are part of this review.
+- Final review verification passed: Ruff, 52 tests (including the opt-in SDK
+  smoke with a mocked model), frontend build, all three HTTP controls and all
+  three Chromium controls. Direct database regrading and trace action checks
+  confirmed the intentional blind-retry duplicate failure remained unchanged.
+- Reviewed Git exclusions and staged-file credential checks; only relevant source,
+  tests, configuration, lockfile and documentation belong in the local commit.
+- Added [BENCHMARK_PLAN.md](BENCHMARK_PLAN.md): proposed arms, paired trial
+  manifests, checkpoint protocol, aggregate budgets, metrics and acceptance gates.
+  This is a development plan, not implemented benchmark functionality.

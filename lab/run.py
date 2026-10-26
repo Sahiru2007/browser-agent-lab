@@ -18,8 +18,9 @@ from playwright.sync_api import expect, sync_playwright
 from lab.app import ROOT
 from lab.database import make_engine, snapshot, sqlite_url
 from lab.evaluate import evaluate
+from lab.tasks import CUSTOMER, customer_task
 
-EXPECTED = {"name": "Nimal Silva", "email": "nimal@example.test", "company": "Evergreen Farms"}
+EXPECTED = CUSTOMER
 CASES = [
     {
         "name": "normal_reference",
@@ -128,7 +129,8 @@ def run_case(browser, case: dict, output: Path, transport: str) -> dict:
         "kind": f"scripted_{transport}_control",
         "evaluation": None,
         "execution_error": None,
-        "task": {"instruction": "Create this customer exactly once.", "customer": EXPECTED},
+        "task": {"task_id": "customer.create_once", "version": "1.0.0",
+                 "instruction": customer_task("normal").instruction, "customer": EXPECTED},
     }
     engine = make_engine(database_url)
     context = None
