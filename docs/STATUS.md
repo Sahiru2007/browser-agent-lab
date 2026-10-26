@@ -49,6 +49,8 @@ observable. This is not a recommendation for production CRM database design.
 - Git initialized on main; authenticated GitHub account: Sahiru2007.
 - Created private repository https://github.com/Sahiru2007/browser-agent-lab
   with the requested description. Local verification is complete.
+- Starter commit 88dbd22 pushed to origin/main; remote SHA matched local HEAD.
+  GitHub Actions started; its result is separate from the passing local checks.
 - No paid model calls, AI-agent runs, or PostgreSQL checks were performed.
 
 See VERIFICATION.md for evidence and remaining limitations.
