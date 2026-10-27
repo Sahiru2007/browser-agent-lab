@@ -54,3 +54,29 @@ def benchmark_task(scenario: str, strategy: str) -> Task:
             "the matching customer before deciding whether to retry."
         )
     return replace(task, version="1.1.0", instruction=instruction)
+
+
+@dataclass(frozen=True)
+class EditTask:
+    """Operator-owned edit expectations; adapters receive instruction and URL only."""
+    task_id: str
+    version: str
+    instruction: str
+    starting_data: tuple[dict, ...]
+    identifier_email: str
+    changes: dict
+    task_type: str = "customer.edit"
+    fault: str = "none"
+
+
+def edit_task(field: str) -> EditTask:
+    if field not in {"company", "email"}:
+        raise ValueError("Supported edit tasks: company, email")
+    value = "Evergreen Cooperative" if field == "company" else "asha.perera@example.test"
+    return EditTask(
+        task_id="customer.change_" + field, version="1.0.0",
+        instruction=(f"Find the existing customer with email asha@example.test and change only "
+                     f"their {field} to {value}. Preserve all other customer information."),
+        starting_data=tuple(dict(row) for row in SEED_CUSTOMERS),
+        identifier_email="asha@example.test", changes={field: value},
+    )

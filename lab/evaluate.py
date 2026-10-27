@@ -41,3 +41,15 @@ def evaluate(before: dict, after: dict, expected: dict) -> dict:
         "total_customers_created": len(new_records),
         "new_audit_events": len(new_events),
     }
+
+
+
+def evaluate_task(before, after, task):
+    """Operator-owned task dispatch; legacy creation evaluation stays unchanged."""
+    if task.task_id == "customer.create_once":
+        return evaluate(before, after, task.expected_customer)
+    if (getattr(task, "task_type", None) == "customer.edit"
+            and task.task_id in {"customer.change_company", "customer.change_email"}):
+        from lab.edit_evaluate import evaluate_edit
+        return evaluate_edit(before, after, task.identifier_email, task.changes)
+    raise ValueError("Unsupported task type")

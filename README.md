@@ -451,3 +451,14 @@ The retained unresolved guard cases are diagnosed in
 8/9 in-page search-loop calls, final-step unresolved termination. No correct fresh
 record was rejected. Unsupported-context coverage and the future-message wording
 fix are recorded separately. No new model calls were made for that diagnosis.
+
+## Customer editing controls
+
+Search for an existing customer, open their labeled details link, and edit company
+or email. Saves are validated and atomically audited; no-op saves add no event.
+Two versioned email-identified tasks have independent identity/field/audit grading.
+After building the frontend, run `uv run --offline --extra agent python -m lab.edit_run`.
+These are scripted browser controls, not AI-agent results. See
+[architecture](docs/ARCHITECTURE.md) and [task contracts](docs/TASKS.md).
+No edit-specific faults or live editing-agent trials have been added.
+

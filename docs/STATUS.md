@@ -361,3 +361,50 @@ other-context test intentionally demonstrates a duplicate outside the installed
 route's scope and is not part of real-agent statistics. Current control reports:
 runs/20261027T122546Z_6f4ba107/report.html and
 runs/20261027T122552Z_d442d432/report.html. No new model calls.
+
+## Customer-editing milestone - 27 October 2026
+
+Implemented labeled customer details and company/email editing; similar-name
+customers are selected by business email. Added customer.change_company and
+customer.change_email v1.0.0 operator-owned tasks, atomic customer.updated audit,
+and independent task-dispatched edit grading. Creation evaluator function and
+customer.created format are unchanged. No-op saves are event-free and cannot
+satisfy a requested nontrivial change. Architecture/contracts: ARCHITECTURE.md,
+TASKS.md. No new edit fault type, AI trial, dependency upgrade or recovery setting
+change was made. Prior feedback-ablation work was preserved.
+
+Actual verification:
+- Ruff passed; full suite 190 passed with LAB_TEST_BROWSER_USE=1 (SDK interactions
+  mocked, real Chromium). Focused edit/app/creation-grading suite: 42 passed.
+- TypeScript/Vite production build passed.
+- All three HTTP and three Chromium creation controls passed: normal and verified
+  lost confirmation have one customer/event; blind retry has two and is correctly
+  rejected with duplicate_customer (intentional business failure).
+- Both new Chromium editing controls passed, selecting by email among similar
+  names, saving only the requested field, no-op saving and reopening details.
+  Saved databases independently regraded identically after server shutdown:
+  stable identities, zero created/deleted customers, one truthful edit event each.
+- Negative cases reject wrong similar-name customer, additional field changes,
+  replacement records (including recreation audit at the same ID), missing or
+  incorrect/extra audit, success claims without effects, and reverted extra edits.
+  API validation/404/no-op semantics and audit-failure transaction rollback pass.
+- Trace inspection confirms browser fill/click actions, fresh detail GETs and two
+  PATCH 200 responses per edit control (actual change then no-op). All 1,174
+  inventoried historical evidence files retain their SHA256 hashes. Original
+  creation evaluator AST is unchanged. Generated evidence remains Git-ignored.
+
+Reports (relative to project root):
+- HTTP: runs/20261027T144011Z_8e1c885d/report.html
+- Original browser: runs/20261027T144017Z_dad839ad/report.html
+- Editing: runs/edit_controls_final_20261027/report.html and summary.json
+- Per edit: company/ and email/ contain result.json, trial.db,
+  browser-evidence/trace.zip, saved.png and reopened.png (screenshots inside
+  browser-evidence/).
+- Preservation/trace audit: runs/edit_preservation_20261027/verification-receipt.json
+  and historical-files.json.
+
+Limitations: scripted editing evidence only; agent and benchmark CLI selectors
+remain creation-only. No edit-specific uncertainty/recovery tests, authentication,
+email uniqueness or concurrent-edit conflict handling. Experimental guard remains
+creation-specific, not a supported edit guard. No paid calls, commit or push.
+

@@ -14,7 +14,7 @@ from importlib.metadata import PackageNotFoundError, version
 from lab.adapters import AgentConfig, AgentRequest, OllamaConfig, redact_credentials, select_adapter
 from lab.app import ROOT
 from lab.database import customers, make_engine, metadata, snapshot, sqlite_url
-from lab.evaluate import evaluate
+from lab.evaluate import evaluate_task
 from lab.run import available_port, wait_ready
 from lab.tasks import customer_task
 
@@ -88,8 +88,8 @@ def run_trial(task, adapter, config, output):
                 if report["before"] is not None:
                     try:
                         report["after"] = snapshot(engine)
-                        report["evaluation"] = evaluate(
-                            report["before"], report["after"], task.expected_customer)
+                        report["evaluation"] = evaluate_task(
+                            report["before"], report["after"], task)
                     except Exception as exc:
                         report["execution_error"] = f"evaluator:{type(exc).__name__}"
     except Exception as exc:

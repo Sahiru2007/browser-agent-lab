@@ -3,7 +3,7 @@ import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
@@ -29,6 +29,24 @@ class CustomerInput(BaseModel):
         if not local or "." not in domain or domain.startswith(".") or domain.endswith("."):
             raise ValueError("Enter a valid email address")
         return value.lower()
+
+
+class CustomerEditInput(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+    email: str | None = Field(default=None, min_length=3, max_length=254)
+    company: str | None = Field(default=None, min_length=1, max_length=120)
+
+    @field_validator("email", "company", mode="before")
+    @classmethod
+    def reject_null(cls, value):
+        if value is None:
+            raise ValueError("An edited field cannot be null")
+        return value
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value):
+        return CustomerInput.validate_email(value)
 
 
 def create_app(database_url: str | None = None, fault_mode: str | None = None) -> FastAPI:
@@ -65,6 +83,35 @@ def create_app(database_url: str | None = None, fault_mode: str | None = None) -
                     select(customers).where(condition).order_by(customers.c.id)
                 ).mappings()
             ]
+
+    @app.get("/api/customers/{customer_id}")
+    def customer_details(customer_id: int):
+        with engine.connect() as conn:
+            row = conn.execute(select(customers).where(
+                customers.c.id == customer_id)).mappings().first()
+            if row is None:
+                raise HTTPException(status_code=404, detail="Customer not found")
+            return dict(row)
+
+    @app.patch("/api/customers/{customer_id}")
+    def edit_customer(customer_id: int, payload: CustomerEditInput):
+        values = payload.model_dump(exclude_unset=True)
+        with engine.begin() as conn:
+            row = conn.execute(select(customers).where(
+                customers.c.id == customer_id)).mappings().first()
+            if row is None:
+                raise HTTPException(status_code=404, detail="Customer not found")
+            before = dict(row)
+            changed = sorted(key for key, value in values.items() if before[key] != value)
+            after = {**before, **values}
+            if changed:
+                conn.execute(customers.update().where(
+                    customers.c.id == customer_id).values(**values))
+                conn.execute(events.insert().values(
+                    action="customer.updated", customer_id=customer_id,
+                    details={"before": before, "after": after, "changed_fields": changed},
+                ))
+        return {"customer": after, "changed": bool(changed), "changed_fields": changed}
 
     @app.post("/api/customers", status_code=201)
     async def create_customer(payload: CustomerInput):

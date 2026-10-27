@@ -100,3 +100,12 @@ This is an evaluation-engineering project, not a general-purpose agent.
 - Four authorized guard trials are complete; use lab.guard_run --analyze for
   offline analysis. No additional live calls without authorization. Keep all
   earlier evidence and runs/recovery_guard_20261027/frozen-source unchanged.
+
+## Customer editing
+- Scripted edit controls: `uv run --offline --extra agent python -m lab.edit_run`.
+- Preserve creation grading/audit format. EditTask remains operator-only; route
+  evaluation through evaluate_task. See docs/ARCHITECTURE.md and docs/TASKS.md.
+- Require stable customer identity, exact requested change, unchanged other fields
+  and records, and atomic truthful audit. No-op saves produce no new event.
+- Editing controls are not AI trials; the experimental guard is creation-specific.
+

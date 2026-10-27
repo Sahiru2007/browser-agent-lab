@@ -11,6 +11,56 @@ function App() {
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [selected, setSelected] = useState<Customer | null>(null);
+  const [editEmail, setEditEmail] = useState('');
+  const [editCompany, setEditCompany] = useState('');
+  const [editMessage, setEditMessage] = useState('');
+  const [detailsError, setDetailsError] = useState('');
+  const [editBusy, setEditBusy] = useState(false);
+
+  async function openDetails(customer: Customer) {
+    setDetailsError(''); setEditMessage(''); setEditBusy(true);
+    try {
+      const response = await fetch('/api/customers/' + customer.id);
+      if (!response.ok) throw new Error();
+      const current: Customer = await response.json();
+      setSelected(current); setEditEmail(current.email); setEditCompany(current.company);
+    } catch {
+      setDetailsError('Customer details could not be loaded. Please try again.');
+    } finally {setEditBusy(false);}
+  }
+
+  async function saveEdit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selected) return;
+    setEditBusy(true); setEditMessage(''); setDetailsError('');
+    const patch: {email?: string; company?: string} = {};
+    if (editEmail !== selected.email) patch.email = editEmail;
+    if (editCompany !== selected.company) patch.company = editCompany;
+    try {
+      const response = await fetch('/api/customers/' + selected.id, {
+        method: 'PATCH', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(patch),
+      });
+      if (!response.ok) {
+        setDetailsError(response.status === 422
+          ? 'Enter a valid email address and a non-empty company.'
+          : 'Could not confirm whether the changes were saved. Reopen the customer to check.');
+        return;
+      }
+      const saved: {customer: Customer; changed: boolean} = await response.json();
+      setSelected(saved.customer); setEditEmail(saved.customer.email);
+      setEditCompany(saved.customer.company);
+      setEditMessage(saved.changed ? 'Changes saved.' : 'No changes to save.');
+      try {
+        const refreshed = await fetch('/api/customers?q=' + encodeURIComponent(query));
+        if (!refreshed.ok) throw new Error();
+        setCustomers(await refreshed.json());
+      } catch {setError('Changes saved, but the customer list could not be refreshed.');}
+    } catch {
+      setDetailsError('Could not confirm whether the changes were saved. Reopen the customer to check.');
+    } finally {setEditBusy(false);}
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -58,7 +108,8 @@ function App() {
           <label htmlFor="search">Search by name or email</label>
           <input id="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search customers…" />
           {error && <p role="alert">{error}</p>}
-          <div className="table-wrap"><table><thead><tr><th>Customer</th><th>Company</th></tr></thead><tbody>{customers.map(c => <tr key={c.id}><td><strong>{c.name}</strong><span className="email">{c.email}</span></td><td>{c.company}</td></tr>)}</tbody></table></div>
+          <div className="table-wrap"><table><thead><tr><th>Customer</th><th>Company</th></tr></thead><tbody>{customers.map(c => <tr key={c.id}><td><strong><button className="record-link" type="button" disabled={editBusy}
+            aria-label={`Open details for ${c.name}, ${c.email}`} onClick={() => openDetails(c)}>{c.name}</button></strong><span className="email">{c.email}</span></td><td>{c.company}</td></tr>)}</tbody></table></div>
           {!customers.length && !error && <p className="empty">No matching customers.</p>}
         </section>
         <section className="panel"><div className="panel-heading"><h2>Add customer</h2><span className="step">01</span></div><p className="form-note">Enter the customer's contact details.</p>
@@ -71,6 +122,23 @@ function App() {
           </form>
         </section>
       </div>
+      {detailsError && <p role="alert">{detailsError}</p>}
+      {selected && <section className="panel details-panel" aria-label="Customer details">
+        <div className="panel-heading"><h2>Customer details</h2>
+          <button className="close-details" type="button" disabled={editBusy}
+            onClick={() => {setSelected(null); setDetailsError(''); setEditMessage('');}}>Close details</button></div>
+        <p><strong>{selected.name}</strong><span className="email">{selected.email}</span></p>
+        <form onSubmit={saveEdit}>
+          <label htmlFor="edit-email">Edit email address</label>
+          <input id="edit-email" type="email" required maxLength={254} value={editEmail}
+            disabled={editBusy} onChange={e => setEditEmail(e.target.value)} />
+          <label htmlFor="edit-company">Edit company</label>
+          <input id="edit-company" required maxLength={120} value={editCompany}
+            disabled={editBusy} onChange={e => setEditCompany(e.target.value)} />
+          <button type="submit" disabled={editBusy}>{editBusy ? 'Saving changes...' : 'Save changes'}</button>
+          <p role="status" aria-live="polite" className="status">{editMessage}</p>
+        </form>
+      </section>}
       <footer>Fieldwork CRM · Browser Agent Lab · Milestone 01</footer>
     </main>
   </div>;
