@@ -193,3 +193,171 @@ See VERIFICATION.md for evidence and remaining limitations.
   bounds the pair to $2. No reverse-order combined command will be used.
 - Preflight evidence: runs/pilot_preflight_20261026T193033Z/preflight.json.
   Both business outcomes, provider usage and failure triggers remain unexercised.
+
+## Persistent E: storage - 27 October 2026
+
+- Recorded the mandatory E: policy in AGENTS.md and added a reusable PowerShell
+  environment helper. User-level model/cache/temp destinations are persisted;
+  project-specific runtime selection stays scoped to its shell.
+- Copied required browsers and the old uv cache to E:\AI\Caches; retained all
+  sources. Retained the old .venv as an identified E: backup and recreated it
+  with managed E: Python 3.11.17. Restored locked dependencies offline.
+- Copied Node/npm to project .tools on E:; node_modules remains in the project.
+  Runtime probes observed uv/Python/Node/Chromium executables and live browser
+  profiles/temp files on E:, and actual npm cache writes there.
+- Ruff, 81 tests with mocked SDK smoke, frontend build and all six existing
+  HTTP/browser controls passed after the environment change. No paid calls.
+- Ollama models are configured on E:, but no executable/server was found, so
+  server-level storage verification remains unavailable. No model was downloaded.
+- Existing C: installations/caches and unrelated processes were left intact.
+  Windows system/registry exceptions were explained before installation.
+  Full paths, backup locations and evidence are in docs/STORAGE.md.
+
+## Ollama standalone installation - 27 October 2026
+
+- Installed official Ollama 0.40.11 standalone CLI/NVIDIA dependencies under
+  E:\AI\Ollama. Archive/extraction stayed in E:\AI\Downloads; verified published
+  SHA-256 and valid Ollama Inc. Authenticode signature. Preserved existing models.
+- Started hidden PID 30844; API version/tags/ps respond at 127.0.0.1:11434.
+  Actual process environment uses E:\AI\OllamaModels and an isolated E: profile,
+  temp/cache/log paths. Socket inspection confirms loopback-only listening.
+- Cloud access and automatic pruning are disabled. No model pull, inference,
+  paid provider call, pilot, autostart service or GitHub push occurred.
+- Recommended qwen3:8b-q4_K_M: 5.23 GB artifact download, 16k proposed context,
+  estimated 8-10 GiB VRAM and 8-12 GiB host-memory headroom on the observed
+  RTX 4070 SUPER 12 GiB / 32 GiB RAM machine. WAITING FOR MODEL CONFIRMATION.
+- Project adapter remains Anthropic-only; the SDK's ChatOllama emits unknown
+  usage and needs a separate accounting integration before local agent trials.
+  Capability compatibility is not a successful local-agent evaluation.
+- Full verification, preservation record and model sources: docs/OLLAMA.md.
+
+
+### Approved local Qwen validation completed - 27 October 2026
+
+- Supersedes prior model-approval wait: downloaded only qwen3:8b-q4_K_M to
+  E:\AI\OllamaModels, 5,225,388,164 model bytes; verified all six blob hashes.
+- Exact text, JSON-schema and tool-call generation checks PASS separately;
+  three sequential local requests, 210 input / 45 output tokens. No tools executed.
+- Actual 16384 context / one slot, 37/37 GPU layers, no CPU layer offload.
+  GPU allocation 7.02 GiB; whole-device peak 9055 MiB and 100% utilization.
+  Peak combined process RSS 1.25 GiB. WDDM per-process VRAM unavailable.
+- Cloud disabled and loopback-only server verified. No paid API, browser-agent
+  trial, evaluator change or push. Local agent integration remains unimplemented;
+  these short native API checks are not browser benchmark results.
+- Detailed measurements/limitations: docs/OLLAMA.md and docs/VERIFICATION.md.
+  Evidence: runs/ollama_model_validation_20261027/summary.json.
+
+
+## Local-only Ollama Browser Use adapter - 27 October 2026
+
+- Implemented separate validated local adapter on pinned Browser Use 0.13.11 /
+  Ollama SDK 0.6.1; supported ChatOllama options and native usage hooks. No upgrade.
+- Exact approved loopback/model digest, 16384 context, concurrency 1, 12 calls,
+  300 seconds, 2048 output tokens/call. No cloud fallback, keys or auxiliary paid
+  model. Restricted actions and independent DB boundary/paid guards preserved.
+- Ruff, 102 tests (including mocked real-SDK/Chromium local path), frontend build,
+  all three HTTP and all three browser controls PASS. Blind retry still grades
+  duplicate_customer. Observer cleanup warning resolved and retested.
+- Ran NORMAL once: business PASS (1 customer/1 event), 12 calls, 77930 input /
+  1704 output tokens, 52.938 seconds. Inefficient repeated Save clicks retained.
+- After inspecting normal accounting/trace/cleanup, ran LOST CONFIRMATION once:
+  business FAIL (duplicate_customer, 2 customers/2 events), 11 calls, 72712 input /
+  2023 output tokens, 54.437 seconds. Agent claimed success; DB grader overruled it.
+- Native usage complete; provider API charges $0, electricity/hardware unmeasured.
+  No real-trial adapter/infrastructure/cleanup errors. No failure reruns or push.
+- Trace shows aborted POST at ~697 ms, second POST 201; committed fault marker
+  references first customer. Screenshots confirm unconfirmed save before retry.
+- Identical neutral task/equivalent initial data; fresh app/browser states per
+  trial. Shared Ollama prompt cache affects timing/cached usage; two trials are
+  integration evidence, not statistical benchmark or checkpoint recovery.
+- Combined evidence: runs/ollama_agent_validation_20261027/summary.json.
+  Full paths and limitations: docs/OLLAMA.md and docs/VERIFICATION.md.
+  Existing paid pilot remains held; no paid call or independent evaluator change.
+
+
+## Completed exploratory local recovery comparison - 27 October 2026
+
+Exactly 12 local-agent trials completed: 2 frozen configurations x 2 conditions x
+3 matched starting-data seeds. Normal: baseline 3/3 and verification 3/3 business
+passes, no duplicates. Lost confirmation: both 0/3 passes and 3/3 duplicates.
+All agents explicitly finished; 10/12 did so at the 12-call ceiling (SDK's final
+step is done-only); no blocked-limit, timeout, infrastructure or accounting error.
+Wilson 95% intervals are [43.9%,100%] for 3/3 and [0%,56.1%] for 0/3.
+This small comparison does not demonstrate reliability or a recovery improvement.
+
+Recorded full instruction/configuration hashes, seeded balanced ordering, shared
+Ollama cache conditions, native usage, independent grades and all trial evidence.
+135 calls: 895134 input / 23427 output tokens; provider API charges $0, local
+hardware/electricity unmeasured. All native counts and DB grades audited; original
+trials remain byte-for-byte unchanged. Added operator-side per-task initial-data
+seeding and a fixed local comparison harness, with no grader/dependency changes.
+Ruff, 117 tests (mocked SDK smokes enabled) and all six scripted controls pass.
+
+Full protocol, diagnosis, counts/uncertainty, implementation changes and limitations:
+[LOCAL_RECOVERY_COMPARISON.md](LOCAL_RECOVERY_COMPARISON.md).
+Offline report: runs/local_recovery_comparison_20261027/report.html; immutable
+manifest, summary and audit alongside it. No replacement/rerun, paid calls or push.
+Checkpoint recovery and broad reliability claims remain out of scope.
+
+Post-run report-only fix: malformed evaluator records now retain a partial report
+and stop without replacement; explicit report-kind labels distinguish mocked
+fixtures. Frozen execution source/hash is preserved alongside
+postrun-report-fix.json. No real trial or grader was modified and no extra
+inference occurred. See LOCAL_RECOVERY_COMPARISON.md for the separate fix record.
+
+
+## Experimental uncertain-write guard - 27 October 2026
+
+Separate GuardConfig/OllamaGuardAdapter now gates browser-context POST requests
+before dispatch and requires a fresh read plus one matching visible name/email/
+company row before resolving success. No DB/fault/grader input enters guard
+recovery decisions. Baseline/verification configurations and all old evidence
+are unchanged; no application idempotency/uniqueness constraint was introduced.
+Supported scope is this synthetic CRM's same-context HTTP flow, not arbitrary
+sites/service workers. Enforcement was verified with actual Chromium/CDP click
+and Enter repeats, rejection/correction, uncertain writes, visible reconciliation,
+unresolved stops and independent grading, plus mocked pinned-SDK model responses.
+
+Exactly four authorized real local trials completed once (normal/lost confirmation
+x seeds 101/202): all four independent DB grades pass with one customer/event,
+zero duplicates. Only the two normal cases reached visible confirmation; both
+lost cases stopped explicitly unresolved, so autonomous recovery is NOT proven.
+No live retry requests were attempted or network-blocked. Guard intercepted two
+unresolved done actions; one was already unsuccessful and one positive claim was
+overridden. These are distinct intervention counts, not two blocked retries.
+45 calls; 302591 input / 7979 output tokens. No infrastructure/accounting/cleanup
+errors. Ruff, 137 tests and all six existing scripted controls pass. No paid call,
+upgrade, grader change or push. Provider API charges $0; energy/hardware unmeasured.
+
+Rule specified before implementation, actual feasibility limits and detailed
+results: [RECOVERY_GUARD.md](RECOVERY_GUARD.md). Offline report:
+runs/recovery_guard_20261027/report.html, with manifest, audit, frozen execution
+sources and per-trial guard event logs. Post-run changes were report-only
+intervention-count enrichment; original results remain unchanged.
+
+
+## Evidence-only unresolved-trial diagnosis - 27 October 2026
+
+See [GUARD_DIAGNOSIS.md](GUARD_DIAGNOSIS.md) for timestamped seed-101/202 timelines,
+12-call allocation, actual network results, visible-detail findings and explicit
+boundary coverage. Both unresolved agents performed zero post-submission reads;
+eight/nine calls looped on scroll/find_text. No correct fresh row was rejected.
+No reconciliation defect explains the failures; limits and matching stay intact.
+Only a reporting defect was corrected for future runs: unresolved text now says
+writes remain prohibited instead of implying that requests were actually blocked.
+Original results/words/event logs/frozen configurations are unchanged.
+
+The case study still has four passing DB outcomes, two confirmed/two unresolved
+workflows, zero live retry blocks and one positive completion claim overridden.
+A new scripted negative test demonstrates other-context bypass and an intentionally
+failing duplicate grade; it is not a real-agent trial. Routed unsupported paths
+are tested as blocked; service-worker traffic and other contexts are not universally
+protected. No new model calls, new guard features, relaxed rule or grader changes.
+A feedback-only four-slot follow-up is proposed, not executed or authorized here.
+
+Checkpoint checks passed: Ruff, 145 tests (optional SDK mocked-provider smoke
+included), frontend build, three HTTP and three browser controls. New negative
+other-context test intentionally demonstrates a duplicate outside the installed
+route's scope and is not part of real-agent statistics. Current control reports:
+runs/20261027T122546Z_6f4ba107/report.html and
+runs/20261027T122552Z_d442d432/report.html. No new model calls.

@@ -85,3 +85,123 @@ def test_mocked_sdk_browser_and_independent_grade(tmp_path, monkeypatch):
     assert result["trial_status"] == "business_fail"
     assert mock_model.calls == 1
     assert result["agent"]["usage"]["provider_usage"][0]["total_tokens"] == 120
+
+
+def test_mocked_ollama_sdk_trace_and_independent_grade(tmp_path, monkeypatch):
+    """Real pinned SDK and Chromium, mocked Ollama HTTP; never local AI evidence."""
+    import json
+    import zipfile
+
+    import httpx
+
+    from lab.adapters import OllamaConfig
+    from lab.agent_run import run_trial
+    from lab.agent_worker import run
+    from lab.tasks import benchmark_task
+
+    for name in ("ANONYMIZED_TELEMETRY", "BROWSER_USE_CLOUD_SYNC", "BROWSER_USE_VERSION_CHECK"):
+        monkeypatch.setenv(name, "false")
+    monkeypatch.setenv("PYTHON_DOTENV_DISABLED", "1")
+    monkeypatch.setenv("BROWSER_USE_CONFIG_DIR", str(tmp_path / "config"))
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.chdir(tmp_path)
+    import lab.ollama_model as local
+
+    real_model = local.LocalModel
+
+    def respond(request):
+        assert request.url.host == "127.0.0.1"
+        return httpx.Response(200, json={
+            "model": "qwen3:8b-q4_K_M", "done": True, "done_reason": "stop",
+            "prompt_eval_count": 30, "eval_count": 20,
+            "message": {"role": "assistant", "content": json.dumps({
+                "evaluation_previous_goal": "Mocked", "memory": "Mocked",
+                "next_goal": "Done", "action": [
+                    {"done": {"text": "Mocked claim only", "success": True}}],
+            })},
+        })
+
+    monkeypatch.setattr(local, "LocalModel", lambda cfg, progress, evidence: real_model(
+        cfg, progress, evidence, httpx.MockTransport(respond)))
+
+    class MockLocalAdapter:
+        kind = "mocked_adapter_test"
+
+        def execute(self, request, config, output):
+            return asyncio.run(run(request, config))
+
+    report = run_trial(benchmark_task("normal", "basic-browser-use"), MockLocalAdapter(),
+                       OllamaConfig(), tmp_path / "trial")
+    assert report["execution_error"] is None, report
+    assert report["agent"]["agent_claimed_success"] is True
+    assert report["evaluation"]["passed"] is False
+    assert report["agent"]["usage"]["provider_usage"][0]["total_tokens"] == 50
+    assert zipfile.is_zipfile(tmp_path / "evidence" / "trace.zip")
+    assert (tmp_path / "evidence" / "browser-history.json").is_file()
+
+
+@pytest.mark.parametrize("scenario", ["normal", "lost-confirmation"])
+def test_guarded_sdk_writes_with_mocked_model(tmp_path, monkeypatch, scenario):
+    """Real SDK/CDP browser; mocked Ollama responses, not real-agent results."""
+    import json
+    import re
+
+    import httpx
+
+    from lab.adapters import GuardConfig
+    from lab.agent_run import run_trial
+    from lab.agent_worker import run
+    from lab.tasks import benchmark_task
+
+    for name in ("ANONYMIZED_TELEMETRY", "BROWSER_USE_CLOUD_SYNC", "BROWSER_USE_VERSION_CHECK"):
+        monkeypatch.setenv(name, "false")
+    monkeypatch.setenv("PYTHON_DOTENV_DISABLED", "1")
+    monkeypatch.setenv("BROWSER_USE_CONFIG_DIR", str(tmp_path / "config"))
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.chdir(tmp_path)
+    import lab.ollama_model as local
+
+    real_model = local.LocalModel
+    calls = []
+
+    def respond(request):
+        body = json.loads(request.content)
+        text = "\n".join(str(m.get('content', '')) for m in body['messages'])
+        calls.append(body)
+        if len(calls) == 1:
+            actions = []
+            for key, value in [('name', 'Nimal Silva'), ('email', 'nimal@example.test'),
+                               ('company', 'Evergreen Farms')]:
+                matches = re.findall(r'\[(\d+)\][^\n]*\bid=["\x27]?' + key + r'\b', text)
+                assert matches, text[-8000:]
+                actions.append({'input': {'index': int(matches[-1]), 'text': value}})
+        elif len(calls) == 2:
+            matches = re.findall(r'\[(\d+)\][^\n]*<button[^\n]*', text)
+            assert matches, text[-8000:]
+            actions = [{'click': {'index': int(matches[-1])}}]
+        else:
+            actions = [{'done': {'text': 'Mock success claim', 'success': True}}]
+        return httpx.Response(200, json={
+            'model': 'qwen3:8b-q4_K_M', 'done': True, 'done_reason': 'stop',
+            'prompt_eval_count': 30, 'eval_count': 20,
+            'message': {'role': 'assistant', 'content': json.dumps({
+                'evaluation_previous_goal': 'Mocked', 'memory': 'Mocked',
+                'next_goal': 'Mocked', 'action': actions})}})
+
+    monkeypatch.setattr(local, 'LocalModel', lambda cfg, progress, evidence: real_model(
+        cfg, progress, evidence, httpx.MockTransport(respond)))
+
+    class MockAdapter:
+        kind = 'mocked_adapter_test'
+
+        def execute(self, request, config, output):
+            return asyncio.run(run(request, config))
+
+    result = run_trial(benchmark_task(scenario, 'basic-browser-use'), MockAdapter(),
+                       GuardConfig(), tmp_path / 'trial')
+    assert result['execution_error'] is None, result
+    assert result['evaluation']['passed'] is True, result
+    assert result['agent']['recovery_guard']['unresolved'] == (scenario == 'lost-confirmation')
+    assert result['agent']['agent_claimed_success'] == (scenario == 'normal')
+    assert len(calls) == 3
+    assert 'Recovery guard' in str(calls[-1]['messages'])

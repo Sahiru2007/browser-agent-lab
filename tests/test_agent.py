@@ -65,8 +65,12 @@ def test_agent_boundary_and_environment(config, monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", "private-db")
     monkeypatch.setenv("LAB_FAULT", "lost_confirmation")
     monkeypatch.setenv("OPENAI_API_KEY", "other-secret")
+    monkeypatch.setenv("TMPDIR", str(tmp_path))
+    monkeypatch.setenv("XDG_CACHE_HOME", "E:\\AI\\Caches")
     env = worker_environment(tmp_path)
     assert not {"DATABASE_URL", "LAB_FAULT", "OPENAI_API_KEY"} & env.keys()
+    assert env["TMPDIR"] == str(tmp_path)
+    assert env["XDG_CACHE_HOME"] == "E:\\AI\\Caches"
     task = customer_task("lost-confirmation")
     request = asdict(AgentRequest("http://127.0.0.1:1234", task.instruction))
     assert set(request) == {"url", "instruction"}

@@ -4,17 +4,28 @@ A local laboratory for testing whether browser workflows produce the correct
 business effects. Milestone 01 verifies customer creation and detects duplicate
 creation after a successful submission loses its confirmation.
 
-**Current results are scripted controls, not AI-agent benchmark results.**
-No model API key or paid service is needed for this milestone.
+**Scripted controls and real local-agent trials are reported separately.**
+The local Ollama adapter has completed one NORMAL trial (business pass) and one
+LOST-CONFIRMATION trial (business fail: duplicate_customer). This is two-case
+integration evidence, not a statistical benchmark. No paid trial has run.
 
-An optional Browser Use adapter is now implemented. Its SDK/browser smoke test
-uses a mocked model; no real-agent success or paid run has been verified.
-
-Verified on Windows on 26 October 2026: frontend build, 13 tests, lint, and all
-three scenarios through both HTTP and Chromium browser controls.
-See docs/VERIFICATION.md for evidence and remaining limitations.
+Verified on Windows on 27 October 2026: lint, 145 tests including mocked SDK/browser
+smokes, frontend build and all six HTTP/Chromium scripted controls.
+See [docs/VERIFICATION.md](docs/VERIFICATION.md) for exact evidence and limitations.
 
 ## Quick start
+
+Local Windows storage policy: before any download/install, configure the project
+shell with `. .\scripts\use-e-storage.ps1`. User-level E: cache/model/temp settings
+are persisted; the helper also selects E: project runtimes for the current shell.
+If scripts are blocked, open `powershell.exe -NoProfile -ExecutionPolicy RemoteSigned`
+first. Keep installer downloads under E:\AI\Downloads and other caches under
+E:\AI\Caches. See [docs/STORAGE.md](docs/STORAGE.md) for actual runtime verification,
+retained originals/backups and Windows exceptions.
+
+Ollama 0.40.11 is now installed separately on E: with a loopback-only server.
+The approved qwen3:8b-q4_K_M weights and local agent adapter are now verified.
+See [docs/OLLAMA.md](docs/OLLAMA.md) for paths, startup, configuration and trial evidence.
 
 Requirements: Python 3.11+, uv, Node.js 22.12+ (or a compatible newer LTS), npm.
 Commands work from the repository root in PowerShell, Bash, or a Codex terminal.
@@ -148,7 +159,8 @@ ANTHROPIC_API_KEY, provider `anthropic`, an available model ID, all execution
 limits, and conservative current input/output USD-per-million price ceilings.
 No model or prices are selected automatically. Keep credentials in environment
 variables; do not put actual keys in commands saved to source files or reports.
-Other providers are deliberately unsupported in this first adapter.
+This `browser-use` adapter remains Anthropic-only. The separate `ollama` adapter
+below needs no provider credentials or monetary price configuration.
 
 After explicitly authorizing a paid trial, the exact command for one normal case is:
 
@@ -176,7 +188,7 @@ SDK telemetry, cloud sync, auto dotenv loading, LLM judging, planning, fallback
 models, and conversation logging are disabled. The existing DB/audit checker
 grades committed state after the adapter exits and the trial server stops.
 
-Limits and budgeting:
+Limits and budgeting for the Anthropic adapter:
 
 - Steps are capped by Agent.run; model calls are independently counted, including
   failed calls. Provider retries are disabled. The parent process enforces total
@@ -325,6 +337,55 @@ The current live-run configuration check and proposed bounded pilot are document
 in [docs/PILOT_READINESS.md](docs/PILOT_READINESS.md). Live execution is on hold;
 example limits are not active model configuration or authorization.
 
+## Local-only Ollama agent
+
+Uses the existing optional dependency (`uv sync --locked --extra agent`), without
+upgrading Browser Use 0.13.11 or Ollama SDK 0.6.1. Inspect/start the E: server as
+shown in [docs/OLLAMA.md](docs/OLLAMA.md); do not pull another model implicitly.
+
+```powershell
+. .\scripts\use-e-storage.ps1
+uv run --offline --extra agent python -m lab.agent_run --adapter ollama --scenario normal
+# A separate trial, only when explicitly authorized:
+uv run --offline --extra agent python -m lab.agent_run --adapter ollama --scenario lost-confirmation
+```
+
+Each command runs once; these are not instructions to repeat the retained trials.
+No API key, .env loading, `--allow-paid` or paid-provider configuration is needed.
+The explicit selector chooses the fixed approved endpoint/model/settings:
+127.0.0.1:11434, qwen3:8b-q4_K_M and its recorded digest, 16384 context,
+one concurrent request, 12 calls/12 steps, 300 seconds and 2048 output tokens/call.
+The parent enforces worker duration; bounded cleanup may add wall time. Output
+capacity is at most 24576 tokens/trial, not a prediction of actual usage. Context
+is per call, not a cumulative input-token allowance. Failed invocations count.
+
+Preflight checks the actual loopback-only listener, server cloud/concurrency/model
+storage environment and installed model digest. It never downloads a missing model.
+Requests use supported ChatOllama host/options/client_params with proxy inheritance
+and redirects disabled and a request guard requiring the exact local /api/chat URL.
+No cloud/fallback/extraction/judge/planner/compaction model is enabled; only the
+existing positive browser-action list is exposed. Workers inherit no provider keys.
+
+Native response hooks retain prompt/completion/cache counters even when SDK JSON
+validation fails. Missing counters are labeled unavailable, never fabricated;
+local calls may continue without monetary pricing under their own call/time/output
+limits. **Anthropic unknown-usage and reservation safeguards are unchanged.**
+Local reports use `real_local_ai_agent_trial`, with zero provider API charges
+separate from unmeasured electricity/hardware costs. They retain final responses,
+model outputs, action history, screenshots, trace.zip, database and independent grade.
+Playwright observes the SDK's CDP-driven browser: action history supplies semantic
+actions, while the trace supplies network/screenshots; it is not a replay script.
+
+The neutral task version 1.1.0 is identical between scenarios and gives no recovery
+prescription. Fresh app databases, servers, browser processes/profiles/contexts are
+used. Ollama itself and its prompt cache remain shared, affecting latency/cache
+counts; context allocation does not validate full-context task quality. Local user
+process isolation is not an OS/network sandbox. A hard-killed worker may leave
+incomplete trace/final-response evidence, while progress accounting and committed
+DB grading remain available. Multi-trial benchmark CLI integration for this new
+local provider is not implemented; use the single-trial CLI above. Paid pilot hold
+and existing paid benchmark dispatch guards remain intact.
+
 ## GitHub repository
 
 Private repository: https://github.com/Sahiru2007/browser-agent-lab
@@ -343,3 +404,50 @@ Review author details and files before committing. Existing Git repositories
 should use their current remote. GitHub Actions runs on pushes and pull requests;
 check its status on GitHub separately from local verification. Choose a license
 before publicly distributing the project.
+
+
+## Exploratory local recovery comparison
+
+A frozen 12-trial comparison is complete: baseline and a general uncertain-write
+verification instruction, each tested once on three matched starting-data seeds
+under normal and lost-confirmation conditions. Both configurations passed 3/3
+normal trials and created duplicates in 3/3 lost-confirmation trials. The added
+instruction did not prevent duplicate writes in this sample. All agents issued
+done; ten did so at the final allowed step. This is exploratory evidence, not
+proof of reliability, and shared Ollama cache prevents timing-isolation claims.
+
+See [the protocol and results](docs/LOCAL_RECOVERY_COMPARISON.md). The offline
+report is runs/local_recovery_comparison_20261027/report.html. Recompute without
+model calls using `uv run --offline --extra agent python -m lab.local_compare
+--analyze runs/local_recovery_comparison_20261027`. No additional live run is
+implied by this documentation. Original two-trial evidence is preserved unchanged.
+
+
+## Experimental browser write guard
+
+A separate local-only guarded configuration enforces request blocking at the
+browser context, rather than relying only on a recovery prompt. After a write,
+unknown outcomes keep further writes blocked until a fresh read shows one visible
+record matching all submitted details. It returns an explicit unsuccessful
+unresolved result when that evidence is missing; it never substitutes for grading.
+No database/fault information, uniqueness constraint or idempotency is used.
+
+Four real local trials are retained: both normal trials resolved visibly; both
+lost-confirmation trials remained unresolved. All four had one correct committed
+customer and no duplicate. No live repeated write was attempted, so network-gate
+blocking is established by technical browser tests, not those four outcomes.
+The guard intercepted two unresolved done actions and overrode one positive
+success claim. This is an exploratory CRM-specific experiment, not generic
+recovery or proof of reliability. See [the full rule and results](docs/RECOVERY_GUARD.md).
+
+Offline report: runs/recovery_guard_20261027/report.html. Rebuild without inference:
+`uv run --offline --extra agent python -m lab.guard_run --analyze runs/recovery_guard_20261027`.
+The four-slot execution requires fresh authorization to repeat. Existing baseline,
+verification, paid-provider guards and original evidence remain unchanged.
+
+
+The retained unresolved guard cases are diagnosed in
+[GUARD_DIAGNOSIS.md](docs/GUARD_DIAGNOSIS.md): no post-submission directory reads,
+8/9 in-page search-loop calls, final-step unresolved termination. No correct fresh
+record was rejected. Unsupported-context coverage and the future-message wording
+fix are recorded separately. No new model calls were made for that diagnosis.

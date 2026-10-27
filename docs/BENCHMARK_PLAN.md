@@ -131,3 +131,64 @@ No pooled headline should hide normal-task regressions or excluded trials.
 - Live pilots require an explicitly configured model/key and authorized total
   budget. Publish results only after the manifest, all arms and evaluation gates
   are implemented and verified. No paid run is authorized by this plan.
+
+
+## Completed exploratory local recovery comparison - 27 October 2026
+
+Exactly 12 local-agent trials completed: 2 frozen configurations x 2 conditions x
+3 matched starting-data seeds. Normal: baseline 3/3 and verification 3/3 business
+passes, no duplicates. Lost confirmation: both 0/3 passes and 3/3 duplicates.
+All agents explicitly finished; 10/12 did so at the 12-call ceiling (SDK's final
+step is done-only); no blocked-limit, timeout, infrastructure or accounting error.
+Wilson 95% intervals are [43.9%,100%] for 3/3 and [0%,56.1%] for 0/3.
+This small comparison does not demonstrate reliability or a recovery improvement.
+
+Recorded full instruction/configuration hashes, seeded balanced ordering, shared
+Ollama cache conditions, native usage, independent grades and all trial evidence.
+135 calls: 895134 input / 23427 output tokens; provider API charges $0, local
+hardware/electricity unmeasured. All native counts and DB grades audited; original
+trials remain byte-for-byte unchanged. Added operator-side per-task initial-data
+seeding and a fixed local comparison harness, with no grader/dependency changes.
+Ruff, 117 tests (mocked SDK smokes enabled) and all six scripted controls pass.
+
+Full protocol, diagnosis, counts/uncertainty, implementation changes and limitations:
+[LOCAL_RECOVERY_COMPARISON.md](LOCAL_RECOVERY_COMPARISON.md).
+Offline report: runs/local_recovery_comparison_20261027/report.html; immutable
+manifest, summary and audit alongside it. No replacement/rerun, paid calls or push.
+Checkpoint recovery and broad reliability claims remain out of scope.
+
+Post-run report-only fix: malformed evaluator records now retain a partial report
+and stop without replacement; explicit report-kind labels distinguish mocked
+fixtures. Frozen execution source/hash is preserved alongside
+postrun-report-fix.json. No real trial or grader was modified and no extra
+inference occurred. See LOCAL_RECOVERY_COMPARISON.md for the separate fix record.
+
+
+## Experimental uncertain-write guard - 27 October 2026
+
+Separate GuardConfig/OllamaGuardAdapter now gates browser-context POST requests
+before dispatch and requires a fresh read plus one matching visible name/email/
+company row before resolving success. No DB/fault/grader input enters guard
+recovery decisions. Baseline/verification configurations and all old evidence
+are unchanged; no application idempotency/uniqueness constraint was introduced.
+Supported scope is this synthetic CRM's same-context HTTP flow, not arbitrary
+sites/service workers. Enforcement was verified with actual Chromium/CDP click
+and Enter repeats, rejection/correction, uncertain writes, visible reconciliation,
+unresolved stops and independent grading, plus mocked pinned-SDK model responses.
+
+Exactly four authorized real local trials completed once (normal/lost confirmation
+x seeds 101/202): all four independent DB grades pass with one customer/event,
+zero duplicates. Only the two normal cases reached visible confirmation; both
+lost cases stopped explicitly unresolved, so autonomous recovery is NOT proven.
+No live retry requests were attempted or network-blocked. Guard intercepted two
+unresolved done actions; one was already unsuccessful and one positive claim was
+overridden. These are distinct intervention counts, not two blocked retries.
+45 calls; 302591 input / 7979 output tokens. No infrastructure/accounting/cleanup
+errors. Ruff, 137 tests and all six existing scripted controls pass. No paid call,
+upgrade, grader change or push. Provider API charges $0; energy/hardware unmeasured.
+
+Rule specified before implementation, actual feasibility limits and detailed
+results: [RECOVERY_GUARD.md](RECOVERY_GUARD.md). Offline report:
+runs/recovery_guard_20261027/report.html, with manifest, audit, frozen execution
+sources and per-trial guard event logs. Post-run changes were report-only
+intervention-count enrichment; original results remain unchanged.

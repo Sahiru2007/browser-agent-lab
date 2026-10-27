@@ -84,10 +84,50 @@ class AgentConfig:
         return config
 
 
+@dataclass(frozen=True)
+class OllamaConfig:
+    provider: str = "ollama"
+    model: str = "qwen3:8b-q4_K_M"
+    endpoint: str = "http://127.0.0.1:11434"
+    context_tokens: int = 16384
+    concurrency: int = 1
+    max_steps: int = 12
+    timeout_seconds: float = 300
+    max_model_calls: int = 12
+    max_output_tokens: int = 2048
+
+    def __post_init__(self):
+        if (self.provider != "ollama" or self.model != "qwen3:8b-q4_K_M"
+                or self.endpoint != "http://127.0.0.1:11434"):
+            raise ValueError("Local adapter requires the approved loopback endpoint and model")
+        for key, ceiling in {"context_tokens": 16384, "concurrency": 1,
+                             "max_steps": 12, "max_model_calls": 12,
+                             "max_output_tokens": 2048}.items():
+            value = getattr(self, key)
+            if isinstance(value, bool) or not isinstance(value, int) or not 0 < value <= ceiling:
+                raise ValueError(f"Invalid local {key}")
+        if self.context_tokens != 16384 or self.concurrency != 1:
+            raise ValueError("Local context/concurrency must be 16384/1")
+        if (isinstance(self.timeout_seconds, bool) or not math.isfinite(self.timeout_seconds)
+                or not 0 < self.timeout_seconds <= 300):
+            raise ValueError("Local duration must be positive and at most 300 seconds")
+
+
+@dataclass(frozen=True)
+class GuardConfig(OllamaConfig):
+    recovery_guard: str = "visible-write-v1"
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.recovery_guard != "visible-write-v1":
+            raise ValueError("Unsupported recovery guard")
+
+
 class Adapter(Protocol):
     kind: str
 
-    def execute(self, request: AgentRequest, config: AgentConfig, output: Path) -> dict: ...
+    def execute(self, request: AgentRequest, config: AgentConfig | OllamaConfig,
+                output: Path) -> dict: ...
 
 
 def redact_credentials(value):
@@ -121,19 +161,23 @@ def stop_process(process):
     process.wait(timeout=10)
 
 
-def worker_environment(folder: Path):
+def worker_environment(folder: Path, local=False):
     # No inherited DB URLs, fault settings, provider overrides, proxies or other secrets.
-    names = ("SYSTEMROOT", "WINDIR", "PATH", "TEMP", "TMP", "LOCALAPPDATA",
-             "USERPROFILE", "HOME", "PLAYWRIGHT_BROWSERS_PATH")
+    names = ("SYSTEMROOT", "WINDIR", "PATH", "TEMP", "TMP", "TMPDIR", "LOCALAPPDATA",
+             "USERPROFILE", "HOME", "PLAYWRIGHT_BROWSERS_PATH", "XDG_CACHE_HOME",
+             "HF_HOME", "TORCH_HOME", "CUDA_CACHE_PATH", "PIP_CACHE_DIR", "UV_CACHE_DIR")
     env = {key: os.environ[key] for key in names if key in os.environ}
     env.update({
-        "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
         "PYTHONPATH": str(Path(__file__).resolve().parents[1]),
         "PYTHON_DOTENV_DISABLED": "1", "ANONYMIZED_TELEMETRY": "false",
         "BROWSER_USE_CLOUD_SYNC": "false", "BROWSER_USE_VERSION_CHECK": "false",
         "BROWSER_USE_CONFIG_DIR": str(folder / "sdk-config"),
         "BROWSER_USE_LOGGING_LEVEL": "critical",
     })
+    if not local:
+        env["ANTHROPIC_API_KEY"] = os.environ["ANTHROPIC_API_KEY"]
+    else:
+        env["OLLAMA_NO_CLOUD"] = "1"
     return env
 
 
@@ -141,7 +185,8 @@ def supervised_worker(payload, config, folder, command=None):
     """Only safe request/config cross the worker boundary; stdout is never recorded."""
     command = command or [sys.executable, "-m", "lab.agent_worker"]
     process = subprocess.Popen(
-        command, cwd=folder, env=worker_environment(folder), stdin=subprocess.PIPE,
+        command, cwd=folder, env=worker_environment(folder, isinstance(config, OllamaConfig)),
+        stdin=subprocess.PIPE,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         start_new_session=os.name != "nt",
     )
@@ -165,6 +210,8 @@ class BrowserUseAdapter:
     kind = "real_ai_agent_trial"
 
     def execute(self, request, config, output):
+        if not isinstance(config, AgentConfig):
+            raise ValueError("Paid adapter requires explicit paid configuration")
         if not os.environ.get("ANTHROPIC_API_KEY", "").strip():
             raise ValueError("Missing ANTHROPIC_API_KEY")
         payload = {"request": asdict(request), "config": asdict(config)}
@@ -175,6 +222,39 @@ class BrowserUseAdapter:
 
 
 def select_adapter(name: str) -> Adapter:
-    if name != "browser-use":
-        raise ValueError("Unknown adapter; supported: browser-use")
-    return BrowserUseAdapter()
+    if name == "browser-use":
+        return BrowserUseAdapter()
+    if name == "ollama":
+        return OllamaAdapter()
+    if name == "ollama-guard":
+        return OllamaGuardAdapter()
+    raise ValueError("Unknown adapter; supported: browser-use, ollama, ollama-guard")
+
+
+class OllamaAdapter:
+    kind = "real_local_ai_agent_trial"
+
+    def execute(self, request, config, output):
+        if not isinstance(config, OllamaConfig):
+            raise ValueError("Ollama adapter requires local configuration")
+        from lab.ollama_model import local_preflight
+
+        metadata = local_preflight(config)
+        payload = {"request": asdict(request), "config": asdict(config)}
+        with tempfile.TemporaryDirectory(prefix="browser-agent-lab-local-") as directory:
+            folder = Path(directory)
+            result = supervised_worker(payload, config, folder)
+            # Copy only explicit synthetic browser/model evidence, never profiles/logs.
+            import shutil
+            evidence = folder / "evidence"
+            if evidence.exists():
+                shutil.copytree(evidence, output / "browser-evidence")
+        result["local_runtime"] = metadata
+        return redact_credentials(result)
+
+
+class OllamaGuardAdapter(OllamaAdapter):
+    def execute(self, request, config, output):
+        if not isinstance(config, GuardConfig):
+            raise ValueError("Guard adapter requires separate GuardConfig")
+        return super().execute(request, config, output)

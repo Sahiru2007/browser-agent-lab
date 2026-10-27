@@ -7,7 +7,7 @@ import sys
 from importlib.metadata import version
 from pathlib import Path
 
-from lab.adapters import AgentConfig, AgentRequest, redact_credentials
+from lab.adapters import AgentConfig, AgentRequest, GuardConfig, OllamaConfig, redact_credentials
 
 # Positive list: no evaluate/JS, extract (another LLM), search engine, files or uploads.
 BROWSER_ACTIONS = frozenset({
@@ -86,10 +86,14 @@ class BudgetedModel:
                 "stop_reason": self.stop_reason}
 
 
-def browser_tools():
+def browser_tools(guard=None):
     from browser_use import Tools
 
-    tools = Tools()
+    if guard is None:
+        tools = Tools()
+    else:
+        from lab.recovery_guard import guarded_tools
+        tools = guarded_tools(guard)
     actions = tools.registry.registry.actions
     if not BROWSER_ACTIONS <= actions.keys():
         raise RuntimeError("Pinned Browser Use tool API changed")
@@ -104,6 +108,23 @@ def validate_browser_tools(tools):
         raise RuntimeError("SDK registered tools outside the browser-only policy")
 
 
+def save_local_history(history, evidence):
+    import shutil
+
+    data = history.model_dump()
+    for i, step in enumerate(data.get("history", [])):
+        state = step.get("state", {})
+        path = state.get("screenshot_path")
+        if path and Path(path).is_file():
+            target = f"step-{i:02d}.png"
+            shutil.copyfile(path, evidence / target)
+            state["screenshot_path"] = target
+        for action in step.get("result", []):
+            if action.get("error"):
+                action["error"] = "SDK action/model error (raw details suppressed)"
+    (evidence / "browser-history.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
 async def run(request, config):
     from browser_use import Agent, Browser, ChatAnthropic
     from playwright.async_api import async_playwright
@@ -111,29 +132,53 @@ async def run(request, config):
     # Resolve installed Playwright browser; never attach to a user's existing profile.
     async with async_playwright() as playwright:
         executable = playwright.chromium.executable_path
+    local = isinstance(config, OllamaConfig)
     browser = Browser(
         headless=True, executable_path=executable, user_data_dir=str(Path.cwd() / "profile"),
-        use_cloud=False, keep_alive=False, allowed_domains=[request.url],
+        use_cloud=False, keep_alive=local, allowed_domains=[request.url],
         enable_default_extensions=False, accept_downloads=False, permissions=[],
     )
-    model = BudgetedModel(ChatAnthropic(
-        model=config.model, api_key=os.environ["ANTHROPIC_API_KEY"],
-        max_tokens=config.max_output_tokens, max_retries=0,
-        timeout=min(config.timeout_seconds, 60),
-        base_url="https://api.anthropic.com",
-    ), config, Path("worker-progress.json"))
+    local = isinstance(config, OllamaConfig)
+    evidence = Path("evidence")
+    if local:
+        evidence.mkdir(exist_ok=True)
+        from lab.ollama_model import LocalModel
+
+        model = LocalModel(config, Path("worker-progress.json"), evidence)
+    else:
+        model = BudgetedModel(ChatAnthropic(
+            model=config.model, api_key=os.environ["ANTHROPIC_API_KEY"],
+            max_tokens=config.max_output_tokens, max_retries=0,
+            timeout=min(config.timeout_seconds, 60),
+            base_url="https://api.anthropic.com",
+        ), config, Path("worker-progress.json"))
     result = {"framework_version": version("browser-use"), "final_agent_message": None,
               "agent_claimed_success": None, "execution_error": None, "usage": None}
+    agent = None
+    guard = None
+    trace_driver = trace_context = observed = None
     try:
+        if local:
+            await browser.start()
+            trace_driver = await async_playwright().start()
+            observed = await trace_driver.chromium.connect_over_cdp(browser.cdp_url)
+            trace_context = observed.contexts[0]
+            await trace_context.tracing.start(screenshots=True, snapshots=True, sources=False)
+            if isinstance(config, GuardConfig):
+                from lab.recovery_guard import RecoveryGuard
+                guard = RecoveryGuard(request.url, trace_context, evidence / "guard-events.jsonl")
+                await guard.install()
         agent = Agent(
             task=f"CRM URL: {request.url}\n{request.instruction}", llm=model,
-            browser=browser, tools=browser_tools(), use_vision=False,
+            browser=browser, tools=browser_tools(guard), use_vision=False,
+            fallback_llm=None, page_extraction_llm=model,
             use_judge=False, calculate_cost=False, message_compaction=False,
             enable_planning=False, enable_signal_handler=False,
             available_file_paths=[], file_system_path=str(Path.cwd() / "scratch"),
             display_files_in_done_text=False, final_response_after_failure=False,
             max_failures=1, max_actions_per_step=3,
-            llm_timeout=max(1, int(min(config.timeout_seconds, 60))),
+            llm_timeout=max(1, int(config.timeout_seconds if local
+                                       else min(config.timeout_seconds, 60))),
             step_timeout=max(1, int(config.timeout_seconds)),
         )
         validate_browser_tools(agent.tools)
@@ -146,17 +191,50 @@ async def run(request, config):
         # Browser Use can catch model errors internally. Preserve their existence,
         # without leaking raw SDK/provider error strings into reports.
         if history.errors() and any(history.errors()):
-            result["execution_error"] = "adapter:BrowserUseHistoryError"
+            if local and not any("infrastructure_error" in e for e in model.entries):
+                result["task_failure"] = "model:AgentActionOrResponseFailure"
+            else:
+                result["execution_error"] = "adapter:BrowserUseHistoryError"
     except Exception as exc:
         result["execution_error"] = f"adapter:{type(exc).__name__}"
     finally:
+        if guard is not None:
+            result["recovery_guard"] = guard.finish()
+            if guard.error:
+                result["execution_error"] = "guard:" + guard.error
+        if local:
+            try:
+                if agent is not None:
+                    save_local_history(agent.history, evidence)
+                if trace_context:
+                    await asyncio.wait_for(trace_context.tracing.stop(
+                        path=str(evidence / "trace.zip")), timeout=10)
+            except Exception:
+                result["execution_error"] = "evidence:TraceSaveError"
+            finally:
+                try:
+                    if observed:
+                        await asyncio.wait_for(observed.close(), timeout=5)
+                except Exception:
+                    result["execution_error"] = "cleanup:TraceObserverCleanupError"
+                finally:
+                    if trace_driver:
+                        try:
+                            await asyncio.wait_for(trace_driver.stop(), timeout=5)
+                        except Exception:
+                            result["execution_error"] = "cleanup:TraceDriverCleanupError"
         try:
             await asyncio.wait_for(browser.kill(), timeout=10)
+            if local:
+                await asyncio.sleep(0.1)
         except Exception:
             result["execution_error"] = "cleanup:BrowserCleanupError"
         result["usage"] = model.summary()
-        if model.stop_reason:
-            result["execution_error"] = "limit:" + model.stop_reason
+        if model.stop_reason and not result["execution_error"]:
+            if local and model.stop_reason == "local_execution_limit":
+                result["task_failure"] = "limit:" + model.stop_reason
+            else:
+                result["execution_error"] = "limit:" + model.stop_reason
     return result
 
 
@@ -165,7 +243,9 @@ def main():
     result = {}
     try:
         result = asyncio.run(run(AgentRequest(**payload["request"]),
-                                 AgentConfig(**payload["config"])))
+                                 (GuardConfig if payload["config"].get("recovery_guard") else
+                                  OllamaConfig if payload["config"].get("provider") == "ollama"
+                                  else AgentConfig)(**payload["config"])))
     except Exception as exc:
         result = {"execution_error": f"adapter:{type(exc).__name__}"}
     text = json.dumps(redact_credentials(result))

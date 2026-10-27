@@ -11,9 +11,9 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version
 
-from lab.adapters import AgentConfig, AgentRequest, redact_credentials, select_adapter
+from lab.adapters import AgentConfig, AgentRequest, OllamaConfig, redact_credentials, select_adapter
 from lab.app import ROOT
-from lab.database import make_engine, snapshot, sqlite_url
+from lab.database import customers, make_engine, metadata, snapshot, sqlite_url
 from lab.evaluate import evaluate
 from lab.run import available_port, wait_ready
 from lab.tasks import customer_task
@@ -40,6 +40,11 @@ def run_trial(task, adapter, config, output):
     }
     process = None
     try:
+        # Operator-owned seed data is inserted only into this newly created trial DB.
+        metadata.create_all(engine)
+        if task.starting_data:
+            with engine.begin() as connection:
+                connection.execute(customers.insert(), list(task.starting_data))
         with (output / "server.log").open("w", encoding="utf-8") as logfile:
             # Provider credentials are not needed by the CRM server.
             env = {k: v for k, v in os.environ.items()
@@ -105,15 +110,15 @@ def run_trial(task, adapter, config, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--adapter", required=True, choices=["browser-use"])
+    parser.add_argument("--adapter", required=True, choices=["browser-use", "ollama"])
     parser.add_argument("--scenario", choices=["normal", "lost-confirmation"], default="normal")
     parser.add_argument("--allow-paid", action="store_true",
                         help="Explicitly authorize one configured trial's model calls")
     args = parser.parse_args()
-    if not args.allow_paid:
+    if args.adapter != "ollama" and not args.allow_paid:
         parser.error("Real trials require --allow-paid; no model calls were made")
     try:
-        config = AgentConfig.from_env()
+        config = OllamaConfig() if args.adapter == "ollama" else AgentConfig.from_env()
         adapter = select_adapter(args.adapter)
     except ValueError as exc:
         parser.error(str(exc))
@@ -123,7 +128,12 @@ def main():
         parser.error("Build the frontend first")
     trial_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "_" + uuid.uuid4().hex[:8]
     output = ROOT / "runs" / ("agent_" + trial_id)
-    report = run_trial(customer_task(args.scenario), adapter, config, output)
+    task = customer_task(args.scenario)
+    if args.adapter == "ollama":
+        # Shared neutral task; no recovery prescription or fault disclosure.
+        from lab.tasks import benchmark_task
+        task = benchmark_task(args.scenario, "basic-browser-use")
+    report = run_trial(task, adapter, config, output)
     print(report["trial_status"])
     print(f"Report: {output / 'result.json'}")
     return 2 if report["execution_error"] else 0 if report["evaluation"]["passed"] else 1
