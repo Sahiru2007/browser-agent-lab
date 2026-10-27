@@ -864,6 +864,40 @@ route's scope and is not part of real-agent statistics. Current control reports:
 runs/20261027T122546Z_6f4ba107/report.html and
 runs/20261027T122552Z_d442d432/report.html. No new model calls.
 
+
+## Completed fresh feedback ablation - 27 October 2026
+
+The user-authorized follow-up used lost-confirmation seeds 101/202 for both A
+(commit-aeba563 feedback) and B (same text plus the supplied clarification).
+This superseded the earlier proposed normal/lost design. Four fresh attempts,
+balanced seeded order B/101, A/101, A/202, B/202; no historical substitutions.
+A and B each reconciled 1/2 and remained unresolved 1/2, on opposite seeds.
+All four DB grades pass with one customer/event and zero duplicates. Fresh reads
+and complete visible name/email/company evidence coincided only in the confirmed
+cases; GET alone was not counted as reconciliation. All used 12 calls and final
+allowed done; no hard timeout. Zero live retry blocks, two unsuccessful unresolved
+done interceptions, zero positive claims overridden. 48 calls; 332904 input /
+9629 output tokens. No infrastructure/accounting/cleanup failure or replacement.
+No aggregate improvement established; two seeds/shared cache/model nondeterminism
+preclude reliability or isolated timing claims. No guard/grader/limit/dependency
+change, paid call, commit or push. Prior case-study evidence remains unchanged.
+
+Exact texts/configuration hashes, per-trial mechanism/results, claims, interventions,
+usage and limitations: [FEEDBACK_ABLATION.md](FEEDBACK_ABLATION.md).
+Offline report: runs/feedback_ablation_20261027/report.html; manifest and audit
+alongside it. Additional inference is not authorized by this documentation.
+
+
+Final verification: Ruff passed; full suite **161 passed** with mocked-provider
+SDK/browser smokes enabled; all three HTTP and all three Chromium scripted
+controls passed. Controls are not included in these four real-agent statistics.
+Current control evidence: runs/20261027T141335Z_2f42740d/report.html (HTTP),
+runs/20261027T141341Z_d6f23c10/report.html (Chromium). Offline HTML checked in
+Chromium: four rows, valid local links, no external requests; receipt and preview
+are report-browser-check.json and report-preview.png in the ablation directory.
+Final source, exact-text/manifest and prior-artifact hashes were rechecked.
+
+
 ## Customer-editing milestone - 27 October 2026
 
 Implemented labeled customer details and company/email editing; similar-name
@@ -910,3 +944,51 @@ remain creation-only. No edit-specific uncertainty/recovery tests, authenticatio
 email uniqueness or concurrent-edit conflict handling. Experimental guard remains
 creation-specific, not a supported edit guard. No paid calls, commit or push.
 
+
+## Exploratory real local editing pilot - 27 October 2026
+
+Editing implementation checkpoint: 282611712cb1f43eb7466459f70a48746d0d613a.
+Unrelated feedback-ablation work was left uncommitted. Minimal follow-on task
+selection (--task company|email, normal only) and fixed lab.edit_pilot orchestration
+reuse the existing runner/unguarded local adapter/evaluator; no edit recovery.
+
+Exactly six authorized fresh attempts completed, three matched seeds per task,
+with frozen Qwen digest, baseline, tools, 16384 context, 2048 output/call,
+12-call ceiling, 300 s timeout and concurrency one. No faults or instruction tuning.
+All six independently regraded databases pass: intended customer edited, requested
+value committed, unrequested fields/other records/identities preserved, one exact
+update event, no customer creation/deletion. Actual traces confirm correct first
+detail read and substantive write targets. No infrastructure/accounting/cleanup
+error and no replacement attempt. All 1232 pre-pilot evidence files unchanged.
+
+All six explicit done at the call ceiling; 3 true and 3 false success claims.
+Model/action failure flags in 3 cases are distinct from laboratory errors.
+37 extra empty no-op saves; company/101 also read the other record during later
+verification without editing it. Six DB passes do not imply reliable/efficient
+agent workflows. Measured totals: 72 calls, 496350 input / 13602 output tokens,
+424545 cached input tokens, 444.563 s summed duration; API charges $0,
+hardware/electricity unmeasured. Shared cache/hardware and brief regression-suite
+overlap with the first trial prevent timing-isolation claims. No paid call,
+dependency upgrade, recovery/grader change or push.
+
+Full per-trial results, claims, limits and caveats: [EDITING_PILOT.md](EDITING_PILOT.md).
+Offline report: runs/editing_pilot_20261027/report.html. Frozen manifest/state,
+independent-audit.json, preservation.json and per-trial JSON/DB/history/traces/native
+model responses are retained alongside it. This is exploratory (three seeds/task),
+not a reliability benchmark. No further inference authorized by documentation.
+
+
+Post-pilot verification passed: Ruff, full suite **197 passed** with mocked-provider
+SDK/real-Chromium smokes enabled, TypeScript/Vite build, all three HTTP and all
+three original browser controls, and both editing browser controls with saved-DB
+regrading. Blind retry still fails intentionally with duplicate_customer.
+New tests cover matched task seeds, both edit CLI selectors, fault rejection before
+dispatch, independent regrading regardless of success claims, stale-grade rejection
+and an offline unstarted-slot report. They do not count as real agent observations.
+Control reports: runs/20261027T154442Z_57a819b8/report.html (HTTP),
+runs/20261027T154448Z_57c97268/report.html (browser),
+runs/edit_pilot_post_controls_20261027/report.html (edits).
+Pilot HTML verified in Chromium: six trial rows, 21 valid local evidence links,
+zero external requests; report-browser-check.json and report-preview.png retained.
+Editing checkpoint is committed; subsequent minimal dispatch/pilot/report changes
+remain uncommitted. Earlier unrelated feedback work remains intact. No push.

@@ -40,3 +40,11 @@ write guard remains creation-specific: edits are not a supported guarded workflo
 Existing frozen recovery configurations/evidence are preserved. No live editing
 agent trial has been executed. Snapshot/audit grading assumes the tested agent
 cannot directly forge database history; the existing browser-only boundary remains.
+
+
+The subsequent six-attempt unguarded local editing pilot is complete; see
+[EDITING_PILOT.md](EDITING_PILOT.md). All six independent DB grades pass,
+but only three agent success claims are true; all trials finish at the call ceiling.
+These exploratory observations supersede the earlier milestone's "no live editing
+trials" status. Agent CLI now supports --task company|email with --scenario normal;
+benchmark selectors and creation-specific recovery scope remain unchanged.

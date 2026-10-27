@@ -141,14 +141,15 @@ def test_mocked_ollama_sdk_trace_and_independent_grade(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("scenario", ["normal", "lost-confirmation"])
-def test_guarded_sdk_writes_with_mocked_model(tmp_path, monkeypatch, scenario):
+@pytest.mark.parametrize("feedback_variant", [None, "A", "B"])
+def test_guarded_sdk_writes_with_mocked_model(tmp_path, monkeypatch, scenario, feedback_variant):
     """Real SDK/CDP browser; mocked Ollama responses, not real-agent results."""
     import json
     import re
 
     import httpx
 
-    from lab.adapters import GuardConfig
+    from lab.adapters import GuardConfig, GuardFeedbackConfig
     from lab.agent_run import run_trial
     from lab.agent_worker import run
     from lab.tasks import benchmark_task
@@ -197,11 +198,17 @@ def test_guarded_sdk_writes_with_mocked_model(tmp_path, monkeypatch, scenario):
         def execute(self, request, config, output):
             return asyncio.run(run(request, config))
 
+    config = (GuardFeedbackConfig(feedback_variant=feedback_variant) if feedback_variant
+              else GuardConfig())
     result = run_trial(benchmark_task(scenario, 'basic-browser-use'), MockAdapter(),
-                       GuardConfig(), tmp_path / 'trial')
+                       config, tmp_path / 'trial')
     assert result['execution_error'] is None, result
     assert result['evaluation']['passed'] is True, result
     assert result['agent']['recovery_guard']['unresolved'] == (scenario == 'lost-confirmation')
     assert result['agent']['agent_claimed_success'] == (scenario == 'normal')
     assert len(calls) == 3
     assert 'Recovery guard' in str(calls[-1]['messages'])
+    from lab.guard_feedback import CLARIFICATION
+    delivered = '\n'.join(str(message['content']) for message in calls[-1]['messages'])
+    assert (CLARIFICATION in delivered) == (
+        scenario == 'lost-confirmation' and feedback_variant == 'B')

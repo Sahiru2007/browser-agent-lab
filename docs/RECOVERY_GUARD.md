@@ -209,3 +209,26 @@ failing duplicate grade; it is not a real-agent trial. Routed unsupported paths
 are tested as blocked; service-worker traffic and other contexts are not universally
 protected. No new model calls, new guard features, relaxed rule or grader changes.
 A feedback-only four-slot follow-up is proposed, not executed or authorized here.
+
+
+## Completed fresh feedback ablation - 27 October 2026
+
+The user-authorized follow-up used lost-confirmation seeds 101/202 for both A
+(commit-aeba563 feedback) and B (same text plus the supplied clarification).
+This superseded the earlier proposed normal/lost design. Four fresh attempts,
+balanced seeded order B/101, A/101, A/202, B/202; no historical substitutions.
+A and B each reconciled 1/2 and remained unresolved 1/2, on opposite seeds.
+All four DB grades pass with one customer/event and zero duplicates. Fresh reads
+and complete visible name/email/company evidence coincided only in the confirmed
+cases; GET alone was not counted as reconciliation. All used 12 calls and final
+allowed done; no hard timeout. Zero live retry blocks, two unsuccessful unresolved
+done interceptions, zero positive claims overridden. 48 calls; 332904 input /
+9629 output tokens. No infrastructure/accounting/cleanup failure or replacement.
+No aggregate improvement established; two seeds/shared cache/model nondeterminism
+preclude reliability or isolated timing claims. No guard/grader/limit/dependency
+change, paid call, commit or push. Prior case-study evidence remains unchanged.
+
+Exact texts/configuration hashes, per-trial mechanism/results, claims, interventions,
+usage and limitations: [FEEDBACK_ABLATION.md](FEEDBACK_ABLATION.md).
+Offline report: runs/feedback_ablation_20261027/report.html; manifest and audit
+alongside it. Additional inference is not authorized by this documentation.

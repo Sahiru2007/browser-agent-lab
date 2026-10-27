@@ -101,6 +101,18 @@ This is an evaluation-engineering project, not a general-purpose agent.
   offline analysis. No additional live calls without authorization. Keep all
   earlier evidence and runs/recovery_guard_20261027/frozen-source unchanged.
 
+
+## Completed feedback ablation
+- docs/FEEDBACK_ABLATION.md records the four fresh lost-confirmation A/B trials.
+  GuardFeedbackConfig changes only UNKNOWN feedback presentation; keep the guard,
+  grader, task and limits intact. No fault/assertion may trigger feedback.
+- Four authorized slots are complete. Use lab.feedback_run --analyze for offline
+  analysis; do not execute/repeat slots without new authorization. Preserve
+  runs/feedback_ablation_20261027 and its immutable manifest/frozen sources.
+- A fresh GET alone is not reconciliation. Report visible full-record evidence,
+  independent DB grade, workflow outcome and completion claims separately.
+
+
 ## Customer editing
 - Scripted edit controls: `uv run --offline --extra agent python -m lab.edit_run`.
 - Preserve creation grading/audit format. EditTask remains operator-only; route
@@ -109,3 +121,7 @@ This is an evaluation-engineering project, not a general-purpose agent.
   and records, and atomic truthful audit. No-op saves produce no new event.
 - Editing controls are not AI trials; the experimental guard is creation-specific.
 
+- Six authorized unguarded editing pilot slots are complete; docs/EDITING_PILOT.md.
+  Preserve runs/editing_pilot_20261027 unchanged. Only lab.edit_pilot --analyze is
+  authorized for model-free report rebuilding; do not repeat without authorization.
+  Agent CLI --task company|email uses versioned edit tasks (normal only).

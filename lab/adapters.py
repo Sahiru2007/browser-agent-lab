@@ -123,6 +123,16 @@ class GuardConfig(OllamaConfig):
             raise ValueError("Unsupported recovery guard")
 
 
+@dataclass(frozen=True)
+class GuardFeedbackConfig(GuardConfig):
+    feedback_variant: str = "A"
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.feedback_variant not in {"A", "B"}:
+            raise ValueError("Feedback variant must be A or B")
+
+
 class Adapter(Protocol):
     kind: str
 

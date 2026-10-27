@@ -16,7 +16,7 @@ from lab.app import ROOT
 from lab.database import customers, make_engine, metadata, snapshot, sqlite_url
 from lab.evaluate import evaluate_task
 from lab.run import available_port, wait_ready
-from lab.tasks import customer_task
+from lab.tasks import customer_task, edit_task
 
 
 def framework_version():
@@ -112,9 +112,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--adapter", required=True, choices=["browser-use", "ollama"])
     parser.add_argument("--scenario", choices=["normal", "lost-confirmation"], default="normal")
+    parser.add_argument("--task", choices=["create", "company", "email"], default="create")
     parser.add_argument("--allow-paid", action="store_true",
                         help="Explicitly authorize one configured trial's model calls")
     args = parser.parse_args()
+    if args.task != "create" and args.scenario != "normal":
+        parser.error("Editing tasks support only normal operation")
     if args.adapter != "ollama" and not args.allow_paid:
         parser.error("Real trials require --allow-paid; no model calls were made")
     try:
@@ -133,6 +136,8 @@ def main():
         # Shared neutral task; no recovery prescription or fault disclosure.
         from lab.tasks import benchmark_task
         task = benchmark_task(args.scenario, "basic-browser-use")
+    if args.task != "create":
+        task = edit_task(args.task)
     report = run_trial(task, adapter, config, output)
     print(report["trial_status"])
     print(f"Report: {output / 'result.json'}")

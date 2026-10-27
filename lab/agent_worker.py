@@ -7,7 +7,14 @@ import sys
 from importlib.metadata import version
 from pathlib import Path
 
-from lab.adapters import AgentConfig, AgentRequest, GuardConfig, OllamaConfig, redact_credentials
+from lab.adapters import (
+    AgentConfig,
+    AgentRequest,
+    GuardConfig,
+    GuardFeedbackConfig,
+    OllamaConfig,
+    redact_credentials,
+)
 
 # Positive list: no evaluate/JS, extract (another LLM), search engine, files or uploads.
 BROWSER_ACTIONS = frozenset({
@@ -168,9 +175,14 @@ async def run(request, config):
                 from lab.recovery_guard import RecoveryGuard
                 guard = RecoveryGuard(request.url, trace_context, evidence / "guard-events.jsonl")
                 await guard.install()
+        tools = browser_tools(guard)
+        if isinstance(config, GuardFeedbackConfig):
+            from lab.guard_feedback import feedback_tools
+            tools = feedback_tools(tools, guard, config.feedback_variant,
+                                   evidence / "feedback-events.jsonl")
         agent = Agent(
             task=f"CRM URL: {request.url}\n{request.instruction}", llm=model,
-            browser=browser, tools=browser_tools(guard), use_vision=False,
+            browser=browser, tools=tools, use_vision=False,
             fallback_llm=None, page_extraction_llm=model,
             use_judge=False, calculate_cost=False, message_compaction=False,
             enable_planning=False, enable_signal_handler=False,
@@ -243,7 +255,9 @@ def main():
     result = {}
     try:
         result = asyncio.run(run(AgentRequest(**payload["request"]),
-                                 (GuardConfig if payload["config"].get("recovery_guard") else
+                                 (GuardFeedbackConfig
+                                  if payload["config"].get("feedback_variant") else
+                                  GuardConfig if payload["config"].get("recovery_guard") else
                                   OllamaConfig if payload["config"].get("provider") == "ollama"
                                   else AgentConfig)(**payload["config"])))
     except Exception as exc:

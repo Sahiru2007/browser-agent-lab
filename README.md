@@ -452,6 +452,16 @@ The retained unresolved guard cases are diagnosed in
 record was rejected. Unsupported-context coverage and the future-message wording
 fix are recorded separately. No new model calls were made for that diagnosis.
 
+
+A fresh four-trial feedback ablation is documented in
+[FEEDBACK_ABLATION.md](docs/FEEDBACK_ABLATION.md). Original versus clarified feedback
+each reconciled 1/2 lost-confirmation trials; all four committed business outcomes
+passed, with no duplicates. Fresh GET and matching visible row evidence are
+reported separately. This small shared-cache study establishes no aggregate
+recovery improvement. Offline report: runs/feedback_ablation_20261027/report.html.
+Use lab.feedback_run --analyze for model-free rebuilding; do not rerun live slots.
+
+
 ## Customer editing controls
 
 Search for an existing customer, open their labeled details link, and edit company
@@ -462,3 +472,10 @@ These are scripted browser controls, not AI-agent results. See
 [architecture](docs/ARCHITECTURE.md) and [task contracts](docs/TASKS.md).
 No edit-specific faults or live editing-agent trials have been added.
 
+
+The subsequent six-attempt unguarded local editing pilot is complete; see
+[EDITING_PILOT.md](docs/EDITING_PILOT.md). All six independent DB grades pass,
+but only three agent success claims are true; all trials finish at the call ceiling.
+These exploratory observations supersede the earlier milestone's "no live editing
+trials" status. Agent CLI now supports --task company|email with --scenario normal;
+benchmark selectors and creation-specific recovery scope remain unchanged.
