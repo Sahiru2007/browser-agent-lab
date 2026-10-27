@@ -554,3 +554,33 @@ Local targeted verification: 19 tests passed, Ruff and diff checks passed. Actua
 Linux base-environment validation is the Checks run attached to the uploaded
 commit; inspect GitHub for its conclusion. RC fc2e3f9 remains in preserved history.
 No force push, release, visibility change, reviewer invitation or raw evidence upload.
+
+
+## GitHub presentation refresh - 27 October 2026
+
+README rewritten for technical readers: concrete lost confirmation, implemented
+workflows/stack, architecture, setup/commands, separate controls/mocks/real-agent
+findings, local Ollama requirements, repository map, caveats and explicitly planned
+roadmap. Business grades and all frozen evidence/configurations remain unchanged.
+Four real Playwright page captures were visually reviewed and added to docs/assets:
+customer directory, details/editing panel, cropped recovery comparison and cropped
+guard report showing confirmed versus unresolved workflows. Sources/crop scope are
+recorded in docs/assets/README.md. No credentials, personal data, machine paths or
+desktop content are in the images. No raw DBs/traces/runs are included.
+
+Capture used a separate fresh synthetic DB/server on an unused loopback port;
+that temporary server was stopped. All local captures/temp/receipts remained on E:.
+No install, dependency upgrade, app behavior change or model call. Current measured
+findings and company-verification versus explicit email-failure interpretation are
+preserved. The README explicitly distinguishes recorded local 197-pass opt-in SDK
+verification from GitHub 174 passed/23 skipped at 09fc442: optional SDK dependencies,
+opt-in Chromium/SDK tests and Windows-only cleanup explain the skipped coverage.
+
+Metadata updated to the reliability-laboratory description and six relevant topics;
+repository reconfirmed PRIVATE, homepage blank. No release, invitations, license or
+access changes. New verification: local Markdown/image links and fragment, PNG
+metadata/dimensions, visual review, historical SHA256 preservation and diff hygiene.
+Detailed capture/check receipts are local under runs/github_presentation_20261027.
+The previous full suites/control outcomes are recorded findings, not newly run
+agent experiments for this presentation. Normal Git push and authenticated GitHub
+README/image verification follow; the corresponding Actions run records current CI.
