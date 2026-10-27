@@ -113,14 +113,16 @@ def test_changed_source_stops_before_dispatch(prepared, monkeypatch):
 
 def test_fresh_get_does_not_imply_visible_reconciliation(tmp_path, monkeypatch):
     import json
+    import sys
     import zipfile
-
-    import psutil
+    from types import SimpleNamespace
 
     from lab.feedback_run import inspect_trial
 
-    monkeypatch.setattr(psutil, 'net_connections', lambda *args, **kwargs: [])
-    monkeypatch.setattr(psutil, 'process_iter', lambda *args, **kwargs: [])
+    # Process checks are mocked; the base test suite must not require the agent extra.
+    monkeypatch.setitem(sys.modules, 'psutil', SimpleNamespace(
+        net_connections=lambda *args, **kwargs: [],
+        process_iter=lambda *args, **kwargs: []))
     evidence = tmp_path / 'evidence/browser-evidence'
     evidence.mkdir(parents=True)
     (evidence / 'guard-events.jsonl').write_text(json.dumps({

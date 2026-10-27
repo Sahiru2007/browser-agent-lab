@@ -25,8 +25,4 @@ jobs:
       - run: uv run python -m lab.run --transport http
       - run: uv run playwright install --with-deps chromium
       - run: uv run python -m lab.run
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: control-results
-          path: runs/
+      # Keep generated databases, traces and raw run evidence on the runner only.

@@ -68,10 +68,15 @@ def test_report_retains_unstarted_slots_without_calls(tmp_path):
 
 
 @pytest.mark.parametrize('field', ['company', 'email'])
-def test_real_runner_cli_dispatch_without_inference(monkeypatch, field):
+def test_real_runner_cli_dispatch_without_inference(monkeypatch, tmp_path, field):
     import sys
 
     from lab import agent_run
+    # Mocked dispatch needs only a build sentinel, not a developer's dist directory.
+    dist = tmp_path / 'frontend/dist'
+    dist.mkdir(parents=True)
+    (dist / 'index.html').write_text('<!doctype html>')
+    monkeypatch.setattr(agent_run, 'ROOT', tmp_path)
     observed = []
     monkeypatch.setattr(sys, 'argv', ['agent_run', '--adapter', 'ollama', '--task', field])
     monkeypatch.setattr(agent_run, 'framework_version', lambda: '0.13.11')

@@ -532,3 +532,25 @@ for trace-level independent inspection. A clone can review methods/results and
 run scripted controls without model calls. Windows/E: policy is verified; other
 platforms require storage/tooling adaptation. No live execution is authorized by
 the documentation. No paid calls, publication, visibility change or push.
+
+
+## Private GitHub upload and CI repair - 27 October 2026
+
+GitHub CLI authenticated as Sahiru2007; existing browser-agent-lab repository
+confirmed PRIVATE. main was one commit ahead (fc2e3f9), with no remote divergence.
+All 66 tracked files were audited: no real credentials, databases, raw runs,
+installed dependencies or private machine configuration. Documented .env.example,
+synthetic lab:lab example credentials and intentional E: policy paths are retained.
+
+The preceding GitHub Actions run 40535877115 failed with three base-environment
+test errors: two mocked CLI tests depended on the developer's frontend/dist;
+one evidence-only test imported optional psutil despite mocking its process calls.
+Fixed the tests with an isolated build sentinel and a stand-in process module.
+No application, grader, recovery configuration or live experiment changed.
+Removed Actions upload-artifact over runs/ so raw traces/databases are not uploaded.
+No provider secrets or paid/live agent dispatch are configured in CI.
+
+Local targeted verification: 19 tests passed, Ruff and diff checks passed. Actual
+Linux base-environment validation is the Checks run attached to the uploaded
+commit; inspect GitHub for its conclusion. RC fc2e3f9 remains in preserved history.
+No force push, release, visibility change, reviewer invitation or raw evidence upload.
