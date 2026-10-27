@@ -137,3 +137,18 @@ Pilot HTML verified in Chromium: six trial rows, 21 valid local evidence links,
 zero external requests; report-browser-check.json and report-preview.png retained.
 Editing checkpoint is committed; subsequent minimal dispatch/pilot/report changes
 remain uncommitted. Earlier unrelated feedback work remains intact. No push.
+
+
+## Portfolio response-language and efficiency clarification
+
+See [CASE_STUDY.md](CASE_STUDY.md) for evidence-only analysis added after this pilot.
+The three false Boolean success flags are not three false-negative factual claims:
+company/101 and company/202 acknowledge the edit but lack verification confirmation;
+email/202 explicitly denies a saved edit. All have final messages. Retained state
+messages show Changes saved. at call 3 in every trial. Ten subsequent model steps
+per trial start after the successful edit response (60 total, conservative operator
+post-commit hindsight), not proof that every later call was unnecessary. Exact
+DB commit timestamps and isolated dispatch/inference timings are unavailable.
+The 37 no-op saves and six passing business grades remain unchanged. The pilot and
+feedback work was subsequently committed in 660f089; earlier "uncommitted" statements
+above describe the historical checkpoint, not current repository state.

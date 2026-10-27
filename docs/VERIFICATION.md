@@ -992,3 +992,53 @@ Pilot HTML verified in Chromium: six trial rows, 21 valid local evidence links,
 zero external requests; report-browser-check.json and report-preview.png retained.
 Editing checkpoint is committed; subsequent minimal dispatch/pilot/report changes
 remain uncommitted. Earlier unrelated feedback work remains intact. No push.
+
+
+## First portfolio release candidate - 27 October 2026
+
+The prior pilot/feedback work was already committed as 660f089 and the editing
+implementation as 2826117; there were no uncommitted pilot changes at RC start.
+New RC scope is documentation consolidation plus a standard-library, read-only
+retained-evidence summarizer. No app feature, trial, grade, limit, frozen task or
+configuration changed. README now provides purpose/architecture, reproducible
+setup/control commands, sample sizes, supported workflows/faults and caveats.
+[CASE_STUDY.md](CASE_STUDY.md) consolidates creation/recovery/feedback/editing;
+[DEMO.md](DEMO.md) provides a model-free walkthrough.
+
+Response interpretation is corrected explicitly: the two company agents acknowledge
+successful edits but report missing verification confirmation; email/202 explicitly
+and incorrectly denies its saved edit. Three false Boolean flags are not three
+false-negative factual claims. All six final responses exist. All six business
+grades remain PASS. Efficiency: 37 no-op saves, 72 calls and 444.563 s total;
+10 steps/trial (60 total) start after successful edit responses, a conservative
+operator-hindsight post-commit count. Exact commit/dispatch timestamps, optimal
+call counts and isolated inference/energy costs remain unavailable. Every trial's
+call-3 state message includes Changes saved.; visible input does not establish
+model comprehension. No recovery or reliability conclusion is added.
+
+Newly executed RC checks: Ruff; 46 focused editing/pilot/creation-grading tests;
+read-only summarizer on all six retained histories/traces/native responses,
+including action alignment with SDK defaults and a mismatched-action rejection
+check; command --help checks for controls, edit controls, agent runner and benchmark;
+24 tracked documentation links; four historical offline HTML reports and their
+local links loaded in Chromium, zero external requests/errors. All 1497 historical
+file hashes remain unchanged. No install/download or dependency change was needed.
+The recorded earlier full suite (197 tests), frontend build, six original controls
+and two editing controls were NOT rerun for this documentation/analysis-only RC.
+Their previous results remain valid historical verification, not new RC execution.
+
+A separate manual demo server is running at http://127.0.0.1:8000 (PID 14512 at audit),
+with database/logs in runs/portfolio_rc_20261027, never a historical trial DB.
+Loopback health and read-only search/details verified in Chromium; actual process
+executable and TEMP are on E:. No unrelated process stopped. This is a manual
+application demo, not a new agent observation. Runtime availability is session-local.
+Receipts: runs/portfolio_rc_20261027/review-checks.json, editing-efficiency.json,
+historical-hashes.json, demo-server.json and demo-preview.png (all Git-ignored).
+
+Sharing requirements: the release-candidate commit is local/unpushed; repository
+access and a later authorized push are needed for a remote reviewer. Raw runs are
+excluded; arrange local review or a separately reviewed/redacted evidence export
+for trace-level independent inspection. A clone can review methods/results and
+run scripted controls without model calls. Windows/E: policy is verified; other
+platforms require storage/tooling adaptation. No live execution is authorized by
+the documentation. No paid calls, publication, visibility change or push.

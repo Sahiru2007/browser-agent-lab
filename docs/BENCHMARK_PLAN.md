@@ -4,7 +4,9 @@ Status: Benchmark Engine v1 implements sequential seeded multi-trial scheduling,
 paired scenario/repetition blocks, isolated trials, per-trial JSON, offline
 aggregation/reporting and Wilson binary intervals. Existing controls and the
 Browser Use adapter are reused. Both basic and verification-guided agent policies
-are selectable, but no real-agent benchmark or paid call has been executed.
+are selectable, but its paid-provider benchmark path remains live-unverified. Separate completed
+local comparison/pilot harnesses provide real-agent observations; see CASE_STUDY.md.
+No paid call has been executed.
 Checkpoint recovery is NOT implemented. This document retains future design
 requirements below; it does not declare all acceptance gates completed.
 
@@ -13,8 +15,8 @@ requirements below; it does not declare all acceptance gates completed.
 | Arm | Planned behavior | Current support |
 | --- | --- | --- |
 | Blind retry | On uncertain confirmation, submit again without checking state | Scripted negative control only; label separately from AI results |
-| Basic Browser Use | Same base business task and browser tools, no recovery-specific guidance or checkpoint layer | Implemented selectable v1.1.0 neutral task; live model outcome unverified |
-| Verification-based recovery | On uncertain submission, search the CRM and inspect matching records before deciding whether to retry | Scripted positive control and selectable v1.1.0 agent task plus policy guidance; live agent behavior unverified |
+| Basic Browser Use | Same base business task and browser tools, no recovery-specific guidance or checkpoint layer | Implemented selectable v1.1.0 neutral task; separate local comparison observed normal 3/3, lost 0/3 |
+| Verification-based recovery | On uncertain submission, search the CRM and inspect matching records before deciding whether to retry | Scripted positive control and selectable v1.1.0 agent task plus policy guidance; separate local comparison observed normal 3/3, lost 0/3 |
 | Checkpoint-based recovery | Track workflow phases and observed browser evidence, then resume by verifying an uncertain submission before retrying | Not implemented |
 
 Keep the scripted blind-retry baseline distinct from model-driven arms in tables
