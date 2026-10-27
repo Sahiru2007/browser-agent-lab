@@ -1,6 +1,6 @@
 # Browser Agent Lab
 
-**Test the business outcome of a browser workflow?not just an agent's success message.**
+**Measure the committed business effects of browser workflows.**
 
 Browser Agent Lab is a local evaluation laboratory for browser-agent reliability.
 It combines a synthetic CRM, controlled failures, isolated experiments and an
@@ -9,8 +9,8 @@ writes, incomplete recovery and the gap between a correct edit and a confident
 completion claim. It is a portfolio research project, not a production CRM or
 a reliability guarantee.
 
-[Case study](docs/CASE_STUDY.md) ? [Demonstration guide](docs/DEMO.md) ?
-[Architecture](docs/ARCHITECTURE.md) ? [Verification](docs/VERIFICATION.md)
+[Case study](docs/CASE_STUDY.md) | [Demonstration guide](docs/DEMO.md) |
+[Architecture](docs/ARCHITECTURE.md) | [Verification](docs/VERIFICATION.md)
 
 ![Synthetic CRM customer directory with two similarly named customers, search and customer creation form](docs/assets/customer-directory.png)
 
@@ -18,7 +18,7 @@ a reliability guarantee.
 
 An agent submits a new customer. The server commits the customer and its audit
 event, but the UI times out before receiving confirmation. The agent clicks Save
-again. Two records now exist?even if the agent ends with ?Task completed.?
+again. Two records now exist, even if the agent ends with "Task completed."
 
 The lab reproduces this deliberately: the creation response is delayed after
 commit; the UI cancels after 700 ms. The independent grader checks committed rows
@@ -71,7 +71,7 @@ flowchart LR
 
 The operator owns seed data, resets, fault configuration and assertions. Those do
 not cross the agent boundary. Agents receive the CRM URL, natural-language task
-and a positive list of browser actions?no DB credentials, grader, shell, arbitrary
+and a positive list of browser actions, with no DB credentials, grader, shell, arbitrary
 code execution, upload or search-engine tools. Each trial has a fresh database,
 server, browser/profile/context. The Ollama server/model cache is shared.
 
@@ -162,7 +162,7 @@ were run for these images. Full protocol: [LOCAL_RECOVERY_COMPARISON.md](docs/LO
 
 ![Cropped guard report showing passing independent database grades in all four trials, with confirmed normal workflows and unresolved lost-confirmation workflows](docs/assets/guard-confirmed-and-unresolved.png)
 
-*The report's ?completed? state means execution ended, not recovery succeeded.
+*The report's "completed" state means execution ended, not recovery succeeded.
 Zero live retries were blocked; actual blocking is demonstrated by separate
 browser/CDP tests. [Guard scope and findings](docs/RECOVERY_GUARD.md).*
 
@@ -280,5 +280,5 @@ page captures, not a substitute for a separately reviewed evidence handoff.
 Planned, **not implemented or promised**: broader predeclared recovery comparisons,
 checkpoint recovery, edit-failure studies and a curated/redacted reviewer evidence
 bundle. Any new model experiment needs a frozen protocol and fresh authorization.
-[Benchmark development plan](docs/BENCHMARK_PLAN.md) ? [Case study](docs/CASE_STUDY.md) ?
+[Benchmark development plan](docs/BENCHMARK_PLAN.md) | [Case study](docs/CASE_STUDY.md) |
 [Demo](docs/DEMO.md).

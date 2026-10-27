@@ -1094,3 +1094,13 @@ Detailed capture/check receipts are local under runs/github_presentation_2026102
 The previous full suites/control outcomes are recorded findings, not newly run
 agent experiments for this presentation. Normal Git push and authenticated GitHub
 README/image verification follow; the corresponding Actions run records current CI.
+
+
+Post-push presentation review: authenticated GitHub-rendered README HTML was
+inspected in Chromium with all four byte-verified GitHub PNGs cached locally;
+25 repository-relative rendered link/image targets exist. Full signed-in GitHub
+site UI was not used. Image readability and synthetic-only content were visually
+checked. A punctuation-encoding defect discovered in the first rendered preview
+was corrected with plain ASCII punctuation; no image, result or app behavior changed.
+Historical file hashes remain identical. All downloaded HTML/images/previews and
+verification receipts are under E: runs/github_presentation_20261027, Git-ignored.
